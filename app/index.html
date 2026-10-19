@@ -1,0 +1,1855 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Attest · App</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap">
+<style>
+/* Layout: product shell — fixed sidebar, frosted top bar, roomy content column; certificate previews sit beside every form */
+:root{
+  --paper:#F6F7FB; --surface:#FFFFFF; --sunk:#EFF1F7; --ink:#12162B; --ink2:#3B4260; --muted:#636A89; --line:#E3E6EF; --line2:#D2D7E5;
+  --accent:#3443C4; --accent-soft:#ECEEFD; --accent-ink:#FFFFFF; --brass:#9A7428; --brass-soft:#F7EFDD;
+  --ok:#1C7A4E; --ok-bg:#E2F4EA; --warn:#94600C; --warn-bg:#FBF0DA; --bad:#B42E3C; --bad-bg:#FBE5E8;
+  --shadow-sm:0 1px 2px rgba(16,20,45,.05),0 1px 1px rgba(16,20,45,.03);
+  --shadow-md:0 8px 20px -6px rgba(16,20,45,.12),0 2px 4px rgba(16,20,45,.04);
+  --shadow-lg:0 30px 60px -16px rgba(16,20,45,.35);
+  --r:14px; --r-sm:10px; --ease:cubic-bezier(.2,.7,.2,1);
+  --f-display:"Bodoni Moda","Didot","Bodoni 72",Georgia,serif;
+  --f-body:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"Geist Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0B0E1A; --surface:#13172A; --sunk:#1A1F36; --ink:#ECEEF8; --ink2:#C3C8DE; --muted:#959BB9; --line:#232944; --line2:#2F3658;
+  --accent:#909CFF; --accent-soft:#1D2347; --accent-ink:#0B0E1A; --brass:#D8B266; --brass-soft:#2C2616;
+  --ok:#57CB95; --ok-bg:#132E25; --warn:#E6AA4D; --warn-bg:#33281A; --bad:#F27C88; --bad-bg:#381B22;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3); --shadow-md:0 10px 24px -8px rgba(0,0,0,.5); --shadow-lg:0 30px 60px -16px rgba(0,0,0,.7); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0B0E1A; --surface:#13172A; --sunk:#1A1F36; --ink:#ECEEF8; --ink2:#C3C8DE; --muted:#959BB9; --line:#232944; --line2:#2F3658;
+  --accent:#909CFF; --accent-soft:#1D2347; --accent-ink:#0B0E1A; --brass:#D8B266; --brass-soft:#2C2616;
+  --ok:#57CB95; --ok-bg:#132E25; --warn:#E6AA4D; --warn-bg:#33281A; --bad:#F27C88; --bad-bg:#381B22;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3); --shadow-md:0 10px 24px -8px rgba(0,0,0,.5); --shadow-lg:0 30px 60px -16px rgba(0,0,0,.7); color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:14.5px;line-height:1.55;-webkit-font-smoothing:antialiased;font-feature-settings:"ss01","cv11"}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:45;background:var(--paper)}
+h1,h2,h3{font-family:var(--f-body);font-weight:600;text-wrap:balance;margin:0;letter-spacing:-.022em;color:var(--ink)}
+h2{font-size:1.65rem;line-height:1.2} h3{font-size:1.02rem;letter-spacing:-.01em}
+.eyebrow{font-size:.7rem;text-transform:uppercase;letter-spacing:.11em;color:var(--muted);font-weight:600}
+.muted{color:var(--muted)}
+.mono{font-family:var(--f-mono);font-size:.84em;letter-spacing:.01em}
+a{color:var(--accent)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+/* shell */
+.app{min-height:100vh}
+.side{position:fixed;inset:0 auto 0 0;width:248px;z-index:40;display:flex;flex-direction:column;gap:22px;background:var(--surface);border-right:1px solid var(--line);
+  padding:calc(20px + env(safe-area-inset-top,0px)) 14px calc(16px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));transition:transform .3s var(--ease);overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:0 8px}
+.brand h1{font-family:var(--f-display);font-size:1.7rem;font-style:italic;font-weight:500;letter-spacing:0}
+nav.tabs{display:flex;flex-direction:column;gap:2px;flex:1}
+.navlabel{font-size:.66rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600;padding:14px 12px 6px}
+.navlabel:first-child{padding-top:0}
+nav.tabs button{display:flex;align-items:center;gap:11px;width:100%;padding:9px 12px;border:0;border-radius:10px;background:none;color:var(--ink2);cursor:pointer;font-weight:500;font-size:.92rem;text-align:left;transition:background .15s,color .15s}
+nav.tabs button svg{width:18px;height:18px;flex:none;opacity:.8}
+nav.tabs button:hover{background:var(--sunk);color:var(--ink)}
+nav.tabs button[aria-selected="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+nav.tabs button[aria-selected="true"] svg{opacity:1}
+.navcount{margin-left:auto;min-width:20px;padding:0 6px;height:20px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:.7rem;font-weight:700;display:grid;place-items:center;font-style:normal}
+.orgcard{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+.avatar{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink);font-weight:700;flex:none}
+.orgcard strong{display:block;font-size:.86rem;font-weight:600;line-height:1.25;overflow-wrap:anywhere}
+.orgcard small{display:block;font-size:.74rem;color:var(--muted)}
+.scrim{position:fixed;inset:0;background:rgba(8,10,24,.45);z-index:39;animation:fade .2s var(--ease)}
+.main{margin-left:248px;min-width:0}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:color-mix(in srgb,var(--paper) 80%,transparent);-webkit-backdrop-filter:saturate(1.5) blur(14px);backdrop-filter:saturate(1.5) blur(14px);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:12px;padding-block:12px;padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px))}
+.crumbs{flex:1;min-width:0;display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--muted)}
+.crumbs strong{color:var(--ink);font-weight:600}
+.iconbtn{display:none;width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--surface);cursor:pointer;place-items:center;color:var(--ink)}
+.wrap{max-width:1240px;margin:0 auto;padding-block:8px 72px;padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px))}
+.banner{margin-top:18px;padding:11px 14px;border:1px solid var(--line);border-radius:var(--r-sm);font-size:.86rem;color:var(--ink2);background:var(--accent-soft)}
+
+section.view{padding-top:28px;animation:viewIn .34s var(--ease)}
+@keyframes viewIn{from{opacity:.001;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+.head{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:14px;margin-bottom:22px}
+.head p{margin:6px 0 0;max-width:62ch}
+
+/* controls */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:8px 14px;border-radius:10px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);cursor:pointer;font-weight:550;font-size:.88rem;white-space:nowrap;box-shadow:var(--shadow-sm);transition:background .15s,border-color .15s,box-shadow .15s,transform .1s,filter .15s}
+.btn:hover{border-color:var(--muted);background:var(--paper)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;box-shadow:0 1px 2px rgba(20,30,120,.25),inset 0 1px 0 rgba(255,255,255,.14)}
+.btn.primary:hover{filter:brightness(1.08);background:var(--accent)}
+.btn.danger{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 35%,var(--line2))}
+.btn.danger:hover{background:var(--bad-bg)}
+.btn.ghost{background:none;border-color:transparent;color:var(--muted);box-shadow:none}
+.btn.ghost:hover{background:var(--sunk);color:var(--ink)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn svg{flex:none}
+label{display:grid;gap:6px;font-size:.82rem;font-weight:550;color:var(--ink2)}
+input[type=text],input[type=email],input[type=date],input[type=number],input[type=url],input[type=password],select,textarea{
+  width:100%;min-height:40px;padding:9px 12px;border:1px solid var(--line2);border-radius:var(--r-sm);background:var(--surface);color:var(--ink);font-size:.92rem;min-width:0;transition:border-color .15s,box-shadow .15s}
+input:hover,select:hover,textarea:hover{border-color:color-mix(in srgb,var(--muted) 60%,var(--line2))}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+input::placeholder,textarea::placeholder{color:color-mix(in srgb,var(--muted) 80%,transparent)}
+textarea{resize:vertical;font-family:var(--f-mono);font-size:.84rem;line-height:1.5}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.form{display:grid;gap:16px;align-content:start}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatches button{width:28px;height:28px;border-radius:50%;border:2px solid var(--surface);outline:1px solid var(--line2);cursor:pointer;transition:transform .15s}
+.swatches button:hover{transform:scale(1.08)}
+.swatches button[aria-pressed="true"]{outline:2px solid var(--ink);outline-offset:1px}
+.seg{display:inline-flex;gap:2px;padding:3px;border-radius:11px;background:var(--sunk);border:1px solid var(--line)}
+.seg button{background:transparent;border:0;padding:6px 12px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:.85rem;font-weight:550;transition:background .15s,color .15s,box-shadow .15s}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-sm)}
+
+/* layout pieces */
+.split{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:28px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow-sm)}
+.preview{position:sticky;top:calc(84px + env(safe-area-inset-top,0px))}
+.preview canvas,.modal canvas{width:100%;height:auto;display:block;border-radius:6px;box-shadow:0 1px 2px rgba(10,14,40,.06),0 20px 40px -18px rgba(10,14,40,.35)}
+.caption{font-size:.78rem;color:var(--muted);margin-top:10px}
+.stats{display:none}
+.cols{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:24px;margin-top:24px}
+
+/* lists / tables */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow-sm)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{text-align:left;font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;padding:12px 16px;border-bottom:1px solid var(--line);white-space:nowrap;background:color-mix(in srgb,var(--sunk) 50%,var(--surface))}
+td{padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr{cursor:pointer;transition:background .12s}
+tbody tr:hover td{background:var(--paper)}
+td .sub{display:block;font-size:.78rem;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.active{color:var(--ok);background:var(--ok-bg)}
+.pill.expired{color:var(--warn);background:var(--warn-bg)}
+.pill.revoked{color:var(--bad);background:var(--bad-bg)}
+.tag{font-size:.64rem;font-weight:650;letter-spacing:.07em;text-transform:uppercase;color:var(--brass);background:var(--brass-soft);padding:2px 7px;border-radius:5px;margin-left:7px;vertical-align:1px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.filters input{flex:1 1 240px;width:auto}
+.filters select{width:auto;flex:0 1 200px}
+.plist{display:grid;gap:10px}
+.prog{display:grid;grid-template-columns:6px minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);cursor:pointer;text-align:left;width:100%;box-shadow:var(--shadow-sm);transition:box-shadow .2s var(--ease),transform .2s var(--ease),border-color .2s}
+.prog:hover,.att:hover,.rec:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.prog[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.prog .bar{align-self:stretch;border-radius:4px}
+.prog strong{font-weight:600;display:block}
+.prog small{color:var(--muted);font-size:.78rem}
+.empty{padding:30px 24px;text-align:center;color:var(--muted);border:1.5px dashed var(--line2);border-radius:var(--r);font-size:.9rem}
+.recent{display:grid;gap:0;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;box-shadow:var(--shadow-sm)}
+.recent button{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:13px 16px;background:none;border:0;border-bottom:1px solid var(--line);text-align:left;cursor:pointer;transition:background .12s}
+.recent button:last-child{border-bottom:0}
+.recent button:hover{background:var(--paper)}
+
+/* bulk preview */
+.bulkrows{max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:var(--r-sm);font-size:.84rem}
+.bulkrows div{display:grid;grid-template-columns:28px minmax(0,1fr) minmax(0,1fr);gap:8px;padding:7px 12px;border-bottom:1px solid var(--line)}
+.bulkrows div.err{color:var(--bad)}
+.progress{height:6px;background:var(--sunk);border-radius:3px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s var(--ease)}
+
+/* verify */
+.verify{max-width:760px;margin:0 auto}
+.verify form{display:flex;gap:8px;flex-wrap:wrap}
+.verify input{flex:1 1 260px;width:auto;font-family:var(--f-mono);font-size:1.05rem;letter-spacing:.06em;text-transform:uppercase;min-height:48px}
+.verify .btn{min-height:48px;padding-inline:22px}
+.result{margin-top:22px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;box-shadow:var(--shadow-md);animation:pop .3s var(--ease)}
+.result .status{display:flex;gap:14px;align-items:center;padding:18px 22px;border-bottom:1px solid var(--line)}
+.result .status .mark{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex:none}
+.result.ok .mark{background:var(--ok-bg);color:var(--ok)}
+.result.warn .mark{background:var(--warn-bg);color:var(--warn)}
+.result.bad .mark{background:var(--bad-bg);color:var(--bad)}
+.result dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:9px 20px;margin:0;padding:18px 22px}
+.result dt{color:var(--muted);font-size:.82rem}
+.result dd{margin:0}
+.result .canvas{padding:0 22px 22px}
+
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(8,10,24,.5);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);display:grid;place-items:center;padding:max(20px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));z-index:50;animation:fade .2s var(--ease)}
+.modal{background:var(--surface);border:1px solid var(--line);border-radius:18px;max-width:1040px;width:100%;max-height:100%;overflow:auto;padding:24px;display:grid;gap:18px;box-shadow:var(--shadow-lg);animation:pop .28s var(--ease)}
+.modal .top{display:flex;justify-content:space-between;align-items:start;gap:12px}
+.modal h3{font-size:1.35rem}
+.mgrid{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:24px;align-items:start}
+.facts{display:grid;gap:12px;font-size:.9rem}
+.facts div{display:grid;gap:3px}
+.facts span{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600}
+.confirm{border:1px solid color-mix(in srgb,var(--bad) 35%,var(--line));background:var(--bad-bg);border-radius:var(--r-sm);padding:14px;display:grid;gap:10px;animation:pop .2s var(--ease)}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--paper);padding:11px 18px;border-radius:12px;font-size:.88rem;font-weight:500;z-index:60;box-shadow:var(--shadow-lg);animation:rise .28s var(--ease)}
+
+/* credits */
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-family:var(--f-mono);font-size:.7rem;font-weight:550;padding:2px 8px;border-radius:6px;white-space:nowrap;background:var(--sunk);color:var(--ink2)}
+.chip.pdh{color:var(--accent);background:var(--accent-soft)} .chip.pdu{color:var(--ok);background:var(--ok-bg)} .chip.ceu{color:var(--brass);background:var(--brass-soft)} .chip.sch{color:var(--bad);background:var(--bad-bg)}
+fieldset{border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:0;display:grid;gap:14px;min-width:0;background:color-mix(in srgb,var(--sunk) 35%,var(--surface))}
+legend{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink2);font-weight:650;padding:0 6px}
+.checks{display:flex;flex-wrap:wrap;gap:8px 18px}
+.checks label{display:flex;flex-direction:row;align-items:center;gap:7px;font-size:.88rem;color:var(--ink);font-weight:500}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.xlate{width:100%;font-size:.84rem;border-collapse:collapse}
+.xlate td,.xlate th{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left}
+.xlate th{font-size:.66rem}
+.xlate td.v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:550;color:var(--ink)}
+.xlate tr.off td{color:var(--muted);opacity:.55}
+.xlate tfoot td{border-bottom:0}
+.hint{font-size:.77rem;color:var(--muted);font-weight:400;line-height:1.45}
+.counts{border:1px solid color-mix(in srgb,var(--ok) 30%,var(--line));background:var(--ok-bg);border-radius:var(--r-sm);padding:11px 14px;font-size:.86rem;animation:pop .2s var(--ease)}
+.counts.none{border-color:var(--line);background:var(--sunk);color:var(--muted)}
+
+/* badges */
+.icons{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.icons button{display:grid;place-items:center;gap:3px;padding:9px 4px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);cursor:pointer;color:var(--ink2);font-size:.68rem;font-weight:500;min-height:48px;transition:border-color .15s,box-shadow .15s,background .15s}
+.icons button:hover{border-color:var(--line2);background:var(--paper)}
+.icons button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);color:var(--accent)}
+.icons svg{width:22px;height:22px}
+.badgeprev{margin-top:22px;display:grid;justify-items:center}
+.badgeprev canvas{width:min(100%,280px);height:auto;box-shadow:none!important}
+.lishare{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:16px}
+.btn.li{background:#0A66C2;border-color:#0A66C2;color:#FFFFFF}
+.btn.li:hover{filter:brightness(1.1);background:#0A66C2}
+a.btn{text-decoration:none;color:inherit}
+a.btn.li{color:#FFFFFF}
+a.btn[aria-disabled="true"]{opacity:.45;pointer-events:none}
+
+/* overview */
+.hero{display:grid;gap:20px;padding:26px;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-sm);
+  background:radial-gradient(900px 260px at 0% 0%,var(--accent-soft),transparent 70%),var(--surface)}
+.hero-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:12px}
+.hero h2{font-size:1.85rem}
+.askbar{display:flex;align-items:center;gap:10px;padding:6px 6px 6px 16px;border:1px solid var(--line2);border-radius:14px;background:var(--surface);color:var(--accent);box-shadow:var(--shadow-md);transition:box-shadow .2s,border-color .2s}
+.askbar input{flex:1;min-width:0;border:0;background:transparent;padding:10px 4px;font-size:1rem;color:var(--ink);min-height:44px;box-shadow:none!important}
+.askbar input:focus{box-shadow:none}
+.askbar:focus-within{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft),var(--shadow-md)}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:18px}
+.kpi{display:flex;flex-direction:column;gap:4px;padding:16px 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);min-width:0;box-shadow:var(--shadow-sm)}
+.kpi .lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600}
+.kpi b{font-size:1.9rem;font-weight:650;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.15}
+.kpi .sub{font-size:.78rem;color:var(--muted)}
+.credtot{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 12px;margin-top:3px}
+.credtot span{display:flex;align-items:baseline;gap:5px;font-variant-numeric:tabular-nums}
+.credtot strong{font-size:1.2rem;font-weight:650;letter-spacing:-.02em}
+.credtot small{font-size:.7rem;color:var(--muted);font-weight:600;letter-spacing:.04em}
+.att{display:grid;grid-template-columns:4px minmax(0,1fr) auto;gap:14px;align-items:center;padding:13px 14px 13px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;box-shadow:var(--shadow-sm);transition:box-shadow .2s var(--ease),transform .2s var(--ease)}
+.att .sev{align-self:stretch;background:var(--warn);border-radius:0 3px 3px 0}
+.att.bad .sev{background:var(--bad)} .att.info .sev{background:var(--accent)}
+.att strong{font-weight:600}
+.att .meta{display:block;font-size:.8rem;color:var(--muted);margin-top:1px}
+.att .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:end}
+
+/* agent */
+.agentgrid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:24px;align-items:start}
+.chatpanel{display:grid;gap:14px;padding:18px}
+.chatlog{display:grid;gap:12px;min-height:280px;max-height:560px;overflow-y:auto;padding:4px;align-content:start;scroll-behavior:smooth}
+.msg{max-width:86%;padding:11px 15px;border-radius:16px;white-space:pre-wrap;font-size:.92rem;line-height:1.55;overflow-wrap:anywhere;animation:pop .25s var(--ease)}
+.msg.user{justify-self:end;background:var(--accent);color:var(--accent-ink);border-bottom-right-radius:5px}
+.msg.agent{justify-self:start;background:var(--sunk);border-bottom-left-radius:5px}
+.msg.agent .steps{display:grid;gap:3px;margin-top:8px;font-size:.76rem;color:var(--muted);white-space:normal}
+.chatform{display:grid;gap:8px}
+.chatform textarea{font-family:var(--f-body);font-size:.94rem;border-radius:12px}
+.suggest{display:flex;flex-wrap:wrap;gap:6px}
+.suggest .btn{font-size:.8rem;min-height:32px;padding:6px 11px;white-space:normal;text-align:left;border-radius:999px;box-shadow:none}
+.pend{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:15px 16px;display:grid;gap:8px;box-shadow:var(--shadow-sm);animation:pop .25s var(--ease)}
+.pend .kind{font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;font-weight:650;color:var(--brass)}
+.pend.done{opacity:.55}
+.pend ul{margin:0;padding-left:18px;font-size:.83rem;color:var(--muted)}
+
+/* learners */
+.lsplit{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:24px;align-items:start}
+.llist{display:grid;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;box-shadow:var(--shadow-sm)}
+.llist button{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:13px 14px;background:none;border:0;border-bottom:1px solid var(--line);text-align:left;cursor:pointer;transition:background .12s}
+.llist button:last-child{border-bottom:0}
+.llist button:hover{background:var(--paper)}
+.llist button[aria-current="true"]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+.llist small{display:block;color:var(--muted);font-size:.78rem}
+.ldetail{display:grid;gap:22px}
+.totals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;box-shadow:var(--shadow-sm)}
+.totals div{padding:14px 16px;border-left:1px solid var(--line)}
+.totals div:first-child{border-left:0}
+.totals b{display:block;font-size:1.6rem;font-weight:650;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.15}
+.totals span{font-size:.76rem;color:var(--muted)}
+.lic{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:18px;display:grid;gap:12px;box-shadow:var(--shadow-sm)}
+.lic .top{display:flex;justify-content:space-between;gap:10px;align-items:start;flex-wrap:wrap}
+.meter{display:grid;grid-template-columns:minmax(110px,170px) minmax(0,1fr) auto;gap:12px;align-items:center;font-size:.85rem}
+.meter.sub{padding-left:14px;font-size:.79rem;color:var(--muted)}
+.meter .bar{height:8px;background:var(--sunk);border-radius:999px;overflow:hidden}
+.meter .bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 70%,var(--surface)),var(--accent));transition:width .6s var(--ease)}
+.meter .bar i.done{background:var(--ok)}
+.meter .num{font-variant-numeric:tabular-nums;white-space:nowrap;font-size:.8rem}
+.rec{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:15px 16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow-sm);transition:box-shadow .2s var(--ease),transform .2s var(--ease)}
+.rec ul{margin:6px 0 0;padding-left:18px;font-size:.84rem;color:var(--muted)}
+.sectionlabel{display:flex;justify-content:space-between;align-items:end;gap:10px}
+
+@media (max-width:1100px){ .split{grid-template-columns:minmax(0,1fr)} .preview{position:static} }
+@media (max-width:960px){
+  .side{transform:translateX(-102%);box-shadow:var(--shadow-lg)}
+  .side.open{transform:none}
+  .main{margin-left:0}
+  .iconbtn{display:grid}
+  .topbar-in,.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+}
+@media (max-width:860px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .att{grid-template-columns:4px minmax(0,1fr)} .att .acts{grid-column:2;justify-content:start}
+  .agentgrid,.lsplit,.cols,.mgrid{grid-template-columns:minmax(0,1fr)}
+  .msg{max-width:100%}
+  .totals{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .totals div:nth-child(3){border-left:0}
+  .totals div:nth-child(n+3){border-top:1px solid var(--line)}
+  .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .topacts .btn span{display:none}
+}
+@media (max-width:520px){ .grid2{grid-template-columns:minmax(0,1fr)} h2{font-size:1.4rem} .hero{padding:18px} .hero h2{font-size:1.5rem} .panel{padding:16px} .modal{padding:16px} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+[hidden]{display:none!important}
+html,body{margin:0}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="side" id="side" aria-label="Main navigation">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 34 34" aria-hidden="true"><g fill="none" stroke="var(--brass)" stroke-width="1.3"><circle cx="17" cy="17" r="15"/><circle cx="17" cy="17" r="11" stroke-dasharray="1.5 2"/></g><path d="M11.5 17.5l3.5 3.5 7.5-8" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h1>Attest</h1>
+    </div>
+    <nav class="tabs" role="tablist" id="tabs" aria-orientation="vertical">
+      <span class="navlabel">Workspace</span>
+      <button role="tab" data-tab="dashboard" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7.5" height="9" rx="2"/><rect x="13.5" y="3" width="7.5" height="5" rx="2"/><rect x="13.5" y="11" width="7.5" height="10" rx="2"/><rect x="3" y="15" width="7.5" height="6" rx="2"/></svg><span>Overview</span></button>
+      <button role="tab" data-tab="agent" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span>Agent</span><em class="navcount" id="agentCount" hidden></em></button>
+      <button role="tab" data-tab="issue" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M8.5 14L7 22l5-3 5 3-1.5-8"/><path d="M12 6.5v5M9.5 9h5"/></svg><span>Issue</span></button>
+      <span class="navlabel">Records</span>
+      <button role="tab" data-tab="credentials" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg><span>Credentials</span></button>
+      <button role="tab" data-tab="learners" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c2 .8 3.2 2.5 3.6 5.2"/></svg><span>Learners</span></button>
+      <button role="tab" data-tab="programs" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>Programs</span></button>
+      <span class="navlabel">Public</span>
+      <button role="tab" data-tab="verify" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><span>Verify</span></button>
+      <button role="tab" data-tab="settings" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg><span>Settings</span></button>
+    </nav>
+    <div class="orgcard"><span class="avatar" id="orgInitial">Y</span><div style="min-width:0"><strong id="orgName">Your organization</strong><small><a href="../" style="color:var(--muted)">Attest website</a> · <a href="../signup.html#login" style="color:var(--muted)">Switch account</a></small></div></div>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-in">
+        <button class="iconbtn" id="menuBtn" aria-label="Open navigation" aria-controls="side" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+        <div class="crumbs"><span id="crumbOrg">Attest</span><span aria-hidden="true">/</span><strong id="pageTitle">Overview</strong></div>
+        <div class="row topacts" id="topActions">
+          <button class="btn" data-go="agent" aria-label="Ask the agent"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg><span>Ask agent</span></button>
+          <button class="btn primary" data-go="issue" aria-label="Issue credentials"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Issue</span></button>
+        </div>
+      </div>
+    </header>
+  <div class="wrap">
+  <div class="banner" id="banner" hidden></div>
+
+  <!-- OVERVIEW -->
+  <section class="view" data-view="dashboard">
+    <div class="hero">
+      <div class="hero-top">
+        <div><span class="eyebrow" id="dashDate"></span><h2 id="dashTitle">Good day</h2><p class="muted" id="dashSub" style="margin:4px 0 0"></p></div>
+        <div class="row"><button class="btn" data-go="programs">New program</button><button class="btn" data-go="issue">Issue credentials</button></div>
+      </div>
+      <form class="askbar" id="askBar" autocomplete="off">
+        <label for="askInput" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Ask the agent</label>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
+        <input type="text" id="askInput" placeholder="Tell Attest what happened, e.g. “Lucas presented a 1-hour webinar for the first time yesterday”">
+        <button class="btn primary" type="submit">Ask agent</button>
+      </form>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><span class="lbl">Credentials issued</span><b id="stIssued">0</b><span class="sub" id="stIssuedSub"></span></div>
+      <div class="kpi"><span class="lbl">Credit awarded</span><div class="credtot" id="stCredit"></div></div>
+      <div class="kpi"><span class="lbl">Learners tracked</span><b id="stLearners">0</b><span class="sub" id="stLearnersSub"></span></div>
+      <div class="kpi"><span class="lbl">Needs attention</span><b id="stAttention">0</b><span class="sub">gaps, expiries and approvals</span></div>
+    </div>
+
+    <div class="cols">
+      <div class="form">
+        <div class="sectionlabel"><h3>Needs attention</h3><span class="hint">Soonest deadlines first</span></div>
+        <div id="attention" class="form"></div>
+      </div>
+      <div class="form">
+        <div class="sectionlabel"><h3>Recent activity</h3><button class="btn ghost" data-go="credentials">View all</button></div>
+        <div id="recent"></div>
+        <div class="sectionlabel" style="margin-top:8px"><h3>Programs</h3><button class="btn ghost" data-go="programs">Manage</button></div>
+        <div id="dashPrograms" class="plist"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AGENT -->
+  <section class="view" data-view="agent" hidden>
+    <div class="head">
+      <div><span class="eyebrow">Agent</span><h2>Tell Attest what happened</h2><p class="muted">Describe activities, cohorts or programs in plain language. The agent works out the activity type and credit, checks license gaps, and prepares the records. Nothing changes until you approve it.</p></div>
+    </div>
+    <div class="agentgrid">
+      <div class="panel chatpanel">
+        <div id="chatLog" class="chatlog" aria-live="polite"></div>
+        <div class="suggest" id="chatSuggest">
+          <button type="button" class="btn" data-ask="Amina presented a 2-hour talk on grid resilience at the IEEE PES meeting last Friday for the first time, and her paper on microgrid protection was published this month. Log both.">Log a talk and a paper</button>
+          <button type="button" class="btn" data-ask="Which learners have open gaps, and what single program would help each of them most?">Who has gaps?</button>
+          <button type="button" class="btn" data-ask="Create a program from this agenda: 'Half-day workshop. 1.5 h: NEC 2026 code changes. 1 h: arc-flash safety and engineering ethics case studies. 1.5 h: leading field crews and client communication.' Offer PDH, PDU and CEU.">Program from an agenda</button>
+        </div>
+        <form id="chatForm" class="chatform" autocomplete="off">
+          <label for="chatInput" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Message the agent</label>
+          <textarea id="chatInput" rows="2" placeholder="e.g. Lucas mentored two junior PMs for 10 hours this quarter"></textarea>
+          <div class="row" style="justify-content:space-between"><span class="hint" id="chatStatus"></span><div class="row"><button class="btn" type="button" id="chatStop" hidden>Stop</button><button class="btn primary" type="submit" id="chatSend">Send</button></div></div>
+        </form>
+        <div class="empty" id="agentOff" hidden>The agent needs a Claude API key. Add one in <button class="btn" type="button" data-go="settings">Settings</button> to try it in this preview.</div>
+      </div>
+      <div class="form">
+        <div class="sectionlabel"><h3>Waiting for approval</h3><button class="btn" id="approveAll" hidden>Approve all</button></div>
+        <div id="pendingList" class="form"><div class="empty">Actions the agent prepares appear here.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ISSUE -->
+  <section class="view" data-view="issue" hidden>
+    <div class="head">
+      <div><span class="eyebrow">Issue</span><h2>Award a credential</h2><p class="muted">Each credential gets a unique ID that anyone can check on the Verify tab.</p></div>
+      <div class="seg" id="issueMode"><button aria-pressed="true" data-mode="single">One recipient</button><button aria-pressed="false" data-mode="bulk">Bulk from CSV</button></div>
+    </div>
+    <div class="split">
+      <div class="panel">
+        <form class="form" id="singleForm" autocomplete="off">
+          <label>Program<select id="iProgram" required></select></label>
+          <label>Recipient full name<input type="text" id="iName" required placeholder="As it should appear on the certificate"></label>
+          <label>Recipient email<input type="email" id="iEmail" placeholder="student@example.org"></label>
+          <div class="grid2">
+            <label>Date of award<input type="date" id="iDate" required></label>
+            <label>Distinction (optional)<input type="text" id="iGrade" placeholder="e.g. With Honors"></label>
+          </div>
+          <label>Hours attended <span class="hint" id="iHoursHint">Leave blank for full attendance. Partial attendance earns partial credit.</span><input type="number" id="iHours" min="0" step="0.25" placeholder="Full program"></label>
+          <div id="iCredits"></div>
+          <div id="iCounts"></div>
+          <div class="row"><button class="btn primary" type="submit" id="iSubmit">Issue credential</button><span class="muted" id="iNote" style="font-size:.85rem"></span></div>
+        </form>
+        <form class="form" id="bulkForm" hidden autocomplete="off">
+          <label>Program<select id="bProgram" required></select></label>
+          <div class="grid2">
+            <label>Date of award<input type="date" id="bDate" required></label>
+            <label>Upload CSV<input type="file" id="bFile" accept=".csv,.txt,text/csv"></label>
+          </div>
+          <label>Recipients — one per line: name, email, distinction, hours attended (last two optional)
+            <textarea id="bText" rows="7" placeholder="name,email,distinction,hours&#10;Amina Diallo,amina@example.org,With Honors,&#10;Lucas Ferreira,lucas@example.org,,9.5"></textarea></label>
+          <div id="bPreview"></div>
+          <div class="progress" id="bProgress" hidden><i></i></div>
+          <div class="row"><button class="btn primary" type="submit" id="bSubmit" disabled>Issue credentials</button><span class="muted" id="bNote" style="font-size:.85rem"></span></div>
+        </form>
+      </div>
+      <div class="preview"><canvas id="issueCanvas" width="1600" height="1131"></canvas><div class="caption" id="issueCaption">Live preview. The ID is assigned when you issue.</div></div>
+    </div>
+  </section>
+
+  <!-- CREDENTIALS -->
+  <section class="view" data-view="credentials" hidden>
+    <div class="head">
+      <div><span class="eyebrow">Registry</span><h2>Issued credentials</h2></div>
+      <div class="row"><button class="btn" id="exportCsv">Export CSV</button><button class="btn primary" data-go="issue">Issue credentials</button></div>
+    </div>
+    <div class="filters">
+      <input type="text" id="fSearch" placeholder="Search by name, email or credential ID">
+      <select id="fProgram"><option value="">All programs</option></select>
+      <select id="fStatus"><option value="">Any status</option><option value="active">Active</option><option value="expired">Expired</option><option value="revoked">Revoked</option></select>
+    </div>
+    <div id="credTable"></div>
+  </section>
+
+  <!-- LEARNERS -->
+  <section class="view" data-view="learners" hidden>
+    <div class="head">
+      <div><span class="eyebrow">Learner records</span><h2>Credits and license progress</h2><p class="muted">Each learner's credits from your programs, tracked against the licenses and certifications they need to renew.</p></div>
+    </div>
+    <div class="lsplit">
+      <div class="form">
+        <input type="text" id="lSearch" placeholder="Search learners" aria-label="Search learners">
+        <div id="lList"></div>
+      </div>
+      <div class="ldetail" id="lDetail">
+        <div id="lHead"></div>
+        <div class="form">
+          <div class="sectionlabel"><h3>Licenses and certifications</h3></div>
+          <div id="lLics" class="form"></div>
+          <form class="panel form" id="licForm" autocomplete="off">
+            <strong style="font-weight:600">Track a license or certification</strong>
+            <div class="grid2">
+              <label>Requirement<select id="licTpl"></select></label>
+              <label>Current cycle started<input type="date" id="licStart" required></label>
+            </div>
+            <div class="form" id="licCustom" hidden>
+              <label>Name<input type="text" id="licName" placeholder="e.g. Ohio PE license"></label>
+              <div class="grid4">
+                <label>Credit type<select id="licType"><option value="pdh">PDH</option><option value="pdu">PDU</option><option value="ceu">CEU</option><option value="sch">Academic credit</option></select></label>
+                <label>Amount<input type="number" id="licAmt" min="0" step="0.1" value="30"></label>
+                <label>Ethics (PDH)<input type="number" id="licEth" min="0" step="0.5" value="0"></label>
+                <label>Cycle (months)<input type="number" id="licMonths" min="1" step="1" value="24"></label>
+              </div>
+            </div>
+            <span class="hint" id="licNote"></span>
+            <div class="row"><button class="btn primary" type="submit">Add to record</button></div>
+          </form>
+        </div>
+        <form class="panel form" id="actForm" autocomplete="off">
+          <div class="sectionlabel"><strong style="font-weight:600">Log an activity</strong><span class="hint">Talks, papers, patents, society service and other learning outside your programs</span></div>
+          <div class="grid2">
+            <label>Activity type<select id="aAct"></select></label>
+            <label>Date<input type="date" id="aDate" required></label>
+          </div>
+          <label>Title<input type="text" id="aTitle" placeholder="e.g. Grid resilience talk, IEEE PES General Meeting"></label>
+          <div class="grid2" id="aHoursWrap"><label>Hours<input type="number" id="aHours" min="0" step="0.25" placeholder="2"></label>
+            <label>Main topic<select id="aArea"><option value="technical">Technical</option><option value="leadership">Leadership &amp; people</option><option value="business">Business &amp; strategy</option><option value="ethics">Ethics</option></select></label></div>
+          <label id="aCountWrap" hidden><span id="aCountLbl">Number</span><input type="number" id="aCount" min="0" step="1" value="1"></label>
+          <div class="grid2" id="aUnitsWrap" hidden><label>Credit hours earned<input type="number" id="aUnits" min="0" step="0.5" value="3"></label>
+            <label>Term system<select id="aUnitType"><option value="semester">Semester</option><option value="quarter">Quarter</option></select></label></div>
+          <label id="aFirstWrap" class="checks" hidden style="display:flex"><input type="checkbox" id="aFirst" checked> First time teaching or presenting this material</label>
+          <label id="aGbWrap" hidden><span id="aGbLbl">Hours spent (PMI Giving Back)</span><input type="number" id="aGb" min="0" step="0.5" placeholder="0"></label>
+          <label>Evidence (link or reference)<input type="text" id="aEvidence" placeholder="DOI, program listing, patent number…"></label>
+          <div id="aPreview"></div>
+          <div class="row"><button class="btn primary" type="submit">Log activity</button></div>
+        </form>
+        <div class="form">
+          <div class="sectionlabel"><h3>Recommended next</h3><span class="hint">Programs that close the most gaps at once</span></div>
+          <div id="lRecs" class="form"></div>
+        </div>
+        <div class="form">
+          <div class="sectionlabel"><h3>Credentials and activities</h3></div>
+          <div id="lCreds"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROGRAMS -->
+  <section class="view" data-view="programs" hidden>
+    <div class="head">
+      <div><span class="eyebrow">Programs</span><h2>Certification programs</h2><p class="muted">A program defines what the certificate says, how it looks, and how long it stays valid.</p></div>
+      <button class="btn" id="newProgram">New program</button>
+    </div>
+    <div class="split">
+      <div class="form">
+        <div id="progList" class="plist"></div>
+        <form class="panel form" id="progForm" autocomplete="off">
+          <div class="row" style="justify-content:space-between"><h3 id="pfTitle">New program</h3><span class="muted" id="pfCount" style="font-size:.85rem"></span></div>
+          <label>Program name<input type="text" id="pName" required placeholder="e.g. Applied Machine Learning"></label>
+          <label>Credential title<input type="text" id="pTitle" placeholder="Certificate of Completion"></label>
+          <label>Statement<textarea id="pDesc" rows="3" style="font-family:var(--f-body);font-size:.92rem" placeholder="has successfully completed the program requirements…"></textarea></label>
+          <label>Skills (comma separated)<input type="text" id="pSkills" placeholder="Python, Model evaluation, MLOps"></label>
+          <fieldset>
+            <legend>Credit translator</legend>
+            <span class="hint">Pick the activity type and enter its hours or count once. Attest applies each credit system's rules for that kind of activity.</span>
+            <label>Activity type<select id="pAct"></select></label>
+            <label id="pCountWrap" hidden><span id="pCountLbl">Number</span><input type="number" id="pCount" min="0" step="1" value="1"></label>
+            <div class="grid2" id="pUnitsWrap" hidden><label>Credit hours awarded<input type="number" id="pUnits" min="0" step="0.5" value="3"></label>
+              <label>Term system<select id="pUnitType"><option value="semester">Semester</option><option value="quarter">Quarter</option></select></label></div>
+            <label id="pFirstWrap" class="checks" hidden style="display:flex"><input type="checkbox" id="pFirst" checked> First time this material is taught or presented</label>
+            <label id="pGbWrap" hidden><span id="pGbLbl">Hours spent (PMI Giving Back)</span><input type="number" id="pGb" min="0" step="0.5" placeholder="0"></label>
+            <div class="grid4" id="pHoursWrap">
+              <label>Technical<input type="number" id="pTech" min="0" step="0.25" placeholder="0"></label>
+              <label>Leadership &amp; people<input type="number" id="pLead" min="0" step="0.25" placeholder="0"></label>
+              <label>Business &amp; strategy<input type="number" id="pBus" min="0" step="0.25" placeholder="0"></label>
+              <label>Ethics<input type="number" id="pEth" min="0" step="0.25" placeholder="0"></label>
+            </div>
+            <div class="checks" id="pOffers">
+              <label><input type="checkbox" id="oPDH" checked> PDH</label>
+              <label><input type="checkbox" id="oPDU"> PMI PDU</label>
+              <label><input type="checkbox" id="oCEU" checked> CEU</label>
+              <label><input type="checkbox" id="oSCH"> Academic credit</label>
+            </div>
+            <div class="tablewrap" style="border-radius:8px"><table class="xlate" id="pXlate"></table></div>
+            <label>Approvals and provider numbers (shown when verified)<input type="text" id="pApproval" placeholder="e.g. PMI ATP #0000 · State board provider #0000"></label>
+          </fieldset>
+          <label>Valid for<select id="pValidity"><option value="0">Does not expire</option><option value="12">1 year</option><option value="24">2 years</option><option value="36">3 years</option><option value="60">5 years</option></select></label>
+          <div class="grid2">
+            <label>Signer name<input type="text" id="pSigner" placeholder="Defaults to Settings"></label>
+            <label>Signer title<input type="text" id="pSignerTitle" placeholder="Program Director"></label>
+          </div>
+          <label>Design<div class="seg" id="pStyle"><button type="button" data-style="classic" aria-pressed="true">Classic</button><button type="button" data-style="modern" aria-pressed="false">Modern</button><button type="button" data-style="minimal" aria-pressed="false">Minimal</button></div></label>
+          <label>Color<div class="swatches" id="pColor"></div></label>
+          <fieldset>
+            <legend>Digital badge</legend>
+            <span class="hint">Learners download it, add it to LinkedIn and share it. It uses the color above.</span>
+            <label>Shape<div class="seg" id="bShape"><button type="button" data-shape="shield" aria-pressed="true">Shield</button><button type="button" data-shape="hex" aria-pressed="false">Hexagon</button><button type="button" data-shape="circle" aria-pressed="false">Circle</button><button type="button" data-shape="ribbon" aria-pressed="false">Rosette</button></div></label>
+            <label>Icon<div class="icons" id="bIcon"></div></label>
+            <div class="grid2">
+              <label>Badge label<input type="text" id="bLabel" maxlength="28" placeholder="e.g. ML PRACTITIONER"></label>
+              <label>Level (optional)<input type="text" id="bLevel" maxlength="24" placeholder="e.g. Professional"></label>
+            </div>
+            <div class="row">
+              <label>Trim color<div class="swatches" id="bAccent"></div></label>
+              <label class="checks" style="display:flex;align-self:end"><input type="checkbox" id="bCredit" checked> Show credits on badge</label>
+            </div>
+          </fieldset>
+          <div class="row"><button class="btn primary" type="submit">Save program</button><button class="btn ghost" type="button" id="pDelete" hidden>Delete</button></div>
+          <div class="confirm" id="pConfirm" hidden><span>Delete this program? Credentials already issued keep their details.</span><div class="row"><button class="btn danger" type="button" id="pDeleteYes">Delete program</button><button class="btn" type="button" id="pDeleteNo">Keep</button></div></div>
+        </form>
+      </div>
+      <div class="preview"><canvas id="progCanvas" width="1600" height="1131"></canvas><div class="caption">Certificate preview with a sample recipient.</div>
+        <div class="badgeprev"><canvas id="progBadge" width="600" height="600"></canvas><div class="caption">Badge preview. Learners get it as a PNG with LinkedIn sharing.</div></div></div>
+    </div>
+  </section>
+
+  <!-- VERIFY -->
+  <section class="view" data-view="verify" hidden>
+    <div class="verify">
+      <div class="head"><div><span class="eyebrow">Public verification</span><h2>Verify a credential</h2><p class="muted">Enter the credential ID printed at the bottom of the certificate.</p></div></div>
+      <form id="verifyForm"><input type="text" id="vId" placeholder="CRT-XXXX-XXXX" aria-label="Credential ID" autocomplete="off" spellcheck="false"><button class="btn primary" type="submit">Verify</button></form>
+      <div id="vResult"></div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="view" data-view="settings" hidden>
+    <div class="head"><div><span class="eyebrow">Settings</span><h2>Issuing organization</h2><p class="muted">These details appear on every certificate.</p></div></div>
+    <form class="panel form" id="orgForm" style="max-width:640px" autocomplete="off">
+      <label>Organization name<input type="text" id="oName" required></label>
+      <div class="grid2">
+        <label>Default signer<input type="text" id="oSigner"></label>
+        <label>Signer title<input type="text" id="oSignerTitle"></label>
+      </div>
+      <div class="grid2">
+        <label>Credential ID prefix<input type="text" id="oPrefix" maxlength="5" placeholder="CRT"></label>
+        <label>Website (shown on certificate)<input type="text" id="oSite" placeholder="example.org"></label>
+      </div>
+      <label>Verification page link<input type="url" id="oVerify" placeholder="https://…/verify.html"></label>
+      <label>Claude API key for the agent (optional)<input type="password" id="oKey" autocomplete="off" placeholder="sk-ant-…"><span class="hint">Kept only in this browser. Agent requests go straight from your browser to Anthropic and are billed to this key. Leave empty to turn the agent off.</span></label>
+      <div class="row"><button class="btn primary" type="submit">Save settings</button><button class="btn danger" type="button" id="clearSamples" hidden>Remove example data</button></div>
+    </form>
+  </section>
+  </div>
+  </main>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="top"><div><span class="eyebrow" id="mEyebrow">Credential</span><h3 id="mTitle"></h3></div><button class="btn ghost" id="mClose" aria-label="Close">Close</button></div>
+    <div class="mgrid">
+      <div class="form">
+        <div class="seg" id="mView" style="justify-self:start"><button type="button" data-v="cert" aria-pressed="true">Certificate</button><button type="button" data-v="badge" aria-pressed="false">Badge</button></div>
+        <canvas id="mCanvas" width="1600" height="1131"></canvas>
+        <canvas id="mBadge" width="600" height="600" hidden style="max-width:380px;justify-self:center;box-shadow:none"></canvas>
+      </div>
+      <div class="form">
+        <div class="facts" id="mFacts"></div>
+        <div class="row" id="mActions">
+          <button class="btn primary" id="mPng">Download certificate</button>
+          <button class="btn" id="mCopy">Copy verification link</button>
+          <button class="btn danger" id="mRevoke">Revoke</button>
+        </div>
+        <div class="lishare" id="mShare">
+          <span class="eyebrow">Share</span>
+          <div class="row">
+            <a class="btn li" id="mLiAdd" href="#" target="_blank" rel="noopener noreferrer"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="3" fill="currentColor"/><path d="M7 10v7M7 7v.01M11 17v-4.2c0-1.3 1-2.3 2.3-2.3s2.2 1 2.2 2.3V17M11 10v7" stroke="#0A66C2" stroke-width="2" stroke-linecap="round"/></svg>Add to LinkedIn profile</a>
+            <a class="btn" id="mLiShare" href="#" target="_blank" rel="noopener noreferrer">Share on LinkedIn</a>
+            <button class="btn" id="mJson">Open Badge data</button>
+          </div>
+          <span class="hint" id="mLiHint"></span>
+        </div>
+        <div class="confirm" id="mConfirm" hidden>
+          <label>Reason for revoking (shown when verified)<input type="text" id="mReason" placeholder="e.g. Issued in error"></label>
+          <div class="row"><button class="btn danger" id="mRevokeYes">Revoke credential</button><button class="btn" id="mRevokeNo">Cancel</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="../assets/store.js"></script>
+<script>
+(() => {
+const COLORS = ["#22306B","#1F5C4A","#7A2433","#4B2D6B","#2E4152","#8A5A12"];
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const todayISO = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10); };
+const fmtDate = iso => iso ? new Date(iso + "T12:00:00").toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"}) : "—";
+const addMonths = (iso, m) => { const d = new Date(iso + "T12:00:00"); d.setMonth(d.getMonth() + Number(m)); return d.toISOString().slice(0,10); };
+const ALPH = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const rand = n => { const a = new Uint32Array(n); crypto.getRandomValues(a); return [...a].map(x => ALPH[x % ALPH.length]).join(""); };
+const slugId = () => "p" + Date.now().toString(36) + rand(3).toLowerCase();
+
+const S = {
+  org: { name:"Your organization", signerName:"", signerTitle:"", prefix:"CRT", website:"", verifyUrl:"" },
+  programs: [], creds: [], learnersArr: [], selLearner: null, db: null, canEdit: true, demo: false, editing: null,
+  draft: { style:"classic", color: COLORS[0] }, bulkRows: [], viewing: null
+};
+
+/* ---------- status ---------- */
+function statusOf(c){
+  if (c.status === "revoked") return "revoked";
+  if (c.expiresOn && c.expiresOn < todayISO()) return "expired";
+  return "active";
+}
+const pill = st => `<span class="pill ${st}">${st[0].toUpperCase()+st.slice(1)}</span>`;
+const prog = id => S.programs.find(p => p.id === id);
+
+/* ---------- credit engine ---------- */
+const fmtN = n => (Math.round(n * 100) / 100).toString();
+const q = x => Math.round(x * 4) / 4;
+function topicHours(p){
+  const t = p.topicHours || {};
+  const h = { technical:+t.technical||0, leadership:+t.leadership||0, business:+t.business||0, ethics:+t.ethics||0 };
+  if (!h.technical && !h.leadership && !h.business && !h.ethics && p.hours) h.technical = +p.hours;
+  return h;
+}
+const totalHours = p => { const h = topicHours(p); return h.technical + h.leadership + h.business + h.ethics; };
+
+/* Activity catalog. Rules follow the common NCEES-style PDH model and PMI's CCR categories;
+   individual boards and certifying bodies can differ, so every value is labeled for confirmation. */
+const ACT = {
+  course:       { label:"Course, seminar or workshop", input:"hours", ed:true, ceu:true, sch:true },
+  conference:   { label:"Conference sessions attended", input:"hours", ed:true, ceu:true },
+  meeting:      { label:"Society or chapter technical meeting", input:"hours", ed:true, pduCap:2 },
+  selfstudy:    { label:"Self-study, reading or online media", input:"hours", ed:true, pdhNote:"Many boards cap or exclude self-study; check yours." },
+  college:      { label:"College course taken for credit", input:"units", ed:true },
+  teaching:     { label:"Teaching a course or seminar", input:"hours", first:true, gb:"Share Knowledge" },
+  presentation: { label:"Presenting at a conference or meeting", input:"hours", first:true, gb:"Give a Presentation" },
+  publication:  { label:"Published paper, article or book", input:"count", unit:"publications", gb:"Create Content" },
+  patent:       { label:"Patent granted", input:"count", unit:"patents" },
+  society:      { label:"Professional or technical society service", input:"count", unit:"organizations", gb:"Volunteer" },
+  examq:        { label:"Licensing exam questions written and used", input:"count", unit:"questions" },
+  mentoring:    { label:"Mentoring or sharing knowledge", input:"hours", gb:"Share Knowledge" },
+  practitioner: { label:"Working as a practitioner (PMI)", input:"none", gb:"Work as a Practitioner" }
+};
+const ALL_OFFERS = { pdh:true, pdu:true, ceu:true, sch:true };
+function computeCredits(p, ratio = 1){
+  const a = ACT[p.activity] ? p.activity : "course", A = ACT[a];
+  const o = p.offers || { pdh:true, ceu:true };
+  const h = topicHours(p), raw = h.technical + h.leadership + h.business + h.ethics, hrs = raw * ratio;
+  const r3 = x => Math.round(x * 3) / 3;
+  const c = { activity:a, contactHours: A.input === "hours" ? q(hrs) : 0, why:{} }, why = c.why;
+  const n = Math.max(0, +p.count || 0), gbH = Math.max(0, +p.gbHours || 0);
+  const pdh = (v, e, text) => { why.pdh = text; if (o.pdh && v > 0){ c.pdh = Math.round(v * 100) / 100; if (e > 0) c.ethics = Math.round(e * 100) / 100; } };
+  const edPdu = (total, text) => {
+    why.pdu = text; if (!o.pdu || !(total > 0)) return;
+    const t = raw || 1, share = raw ? null : 1;
+    c.pduWW = q(total * (share ?? h.technical / t)); c.pduPS = q(total * (share ? 0 : (h.leadership + h.ethics) / t)); c.pduBA = q(total * (share ? 0 : h.business / t));
+    c.pduEd = c.pduWW + c.pduPS + c.pduBA; c.pdu = c.pduEd;
+  };
+  const gbPdu = (v, text) => { why.pdu = text; if (!o.pdu || !(v > 0)) return; c.pduGB = q(v); c.pdu = (c.pdu || 0) + c.pduGB; if (a === "practitioner") c.pduPract = c.pduGB; };
+  if (A.input === "hours" && A.ed){
+    pdh(r3(hrs), r3(h.ethics * ratio), "1 PDH per contact hour, credited to the nearest third of an hour." + (A.pdhNote ? " " + A.pdhNote : ""));
+    edPdu(A.pduCap ? Math.min(hrs, A.pduCap) : hrs, A.pduCap ? "Education PDU, 1 per hour; PMI caps organization meetings at 1–2 PDUs each." : "1 Education PDU per hour, split across the Talent Triangle by topic.");
+    if (A.ceu){ why.ceu = "1 CEU per 10 contact hours of organized instruction."; if (o.ceu && hrs) c.ceu = Math.round(hrs) / 10; }
+    if (A.sch){ why.sch = "Estimate: about 15 contact hours per semester credit. The receiving school decides."; if (o.sch) { const s = Math.floor(hrs / 15 * 2) / 2; if (s) c.sch = s; } }
+  } else if (a === "college"){
+    const u = Math.max(0, +p.units || 0), sem = p.unitType !== "quarter";
+    pdh(u * (sem ? 45 : 30), 0, "45 PDH per semester credit hour, 30 per quarter hour.");
+    edPdu(u * (sem ? 15 : 10), "15 Education PDUs per semester credit, 10 per quarter credit. Confirm in PMI's CCR handbook.");
+    why.sch = "Credit as awarded by the college."; if (o.sch && u) c.sch = sem ? u : q(u * 2 / 3);
+  } else if (a === "teaching" || a === "presentation"){
+    const first = !!p.firstTime;
+    pdh(first ? r3(2 * hrs) : 0, first ? r3(2 * h.ethics * ratio) : 0, first ? "2 PDH per contact hour, the first time you teach or present it. Not for full-time faculty teaching their own institution's courses." : "Repeat teaching earns no PDH under the common model.");
+    gbPdu(hrs + gbH, `Giving Back PDU (${A.gb}), 1 per hour of delivery and preparation.`);
+  } else if (a === "publication"){
+    pdh(10 * n, 0, "10 PDH per published paper, article or book.");
+    gbPdu(gbH, "Giving Back PDU (Create Content), 1 per hour spent creating.");
+  } else if (a === "patent"){ pdh(10 * n, 0, "10 PDH per patent.");
+  } else if (a === "society"){
+    pdh(2 * n, 0, "2 PDH per organization per renewal period.");
+    gbPdu(gbH, "Giving Back PDU (Volunteer), 1 per hour volunteered.");
+  } else if (a === "examq"){ pdh(2 * n, 0, "2 PDH per exam question used.");
+  } else if (a === "mentoring"){
+    why.pdh = "Most boards don't award PDH for mentoring.";
+    gbPdu(hrs, "Giving Back PDU (Share Knowledge), 1 per hour.");
+  } else if (a === "practitioner"){
+    why.pdh = "Not a PDH activity.";
+    gbPdu(8, "PMP allows up to 8 Giving Back PDUs per cycle for working as a practitioner.");
+  }
+  ["pdh","pdu","ceu","sch"].forEach(k => { if (!why[k]) why[k] = "Not applicable to this activity."; });
+  return c;
+}
+function normalize(c){
+  if (!c) return {};
+  if (c.pdu != null && c.pduEd == null && c.pduGB == null) return { ...c, pduEd:(c.pduWW||0)+(c.pduPS||0)+(c.pduBA||0), pduGB:Math.max(0, c.pdu-((c.pduWW||0)+(c.pduPS||0)+(c.pduBA||0))) };
+  return c;
+}
+const pduDetail = c => [c.pduEd ? `Education ${fmtN(c.pduEd)} (WoW ${fmtN(c.pduWW||0)} / PS ${fmtN(c.pduPS||0)} / BA ${fmtN(c.pduBA||0)})` : "", c.pduGB ? `Giving Back ${fmtN(c.pduGB)}` : ""].filter(Boolean).join(" · ");
+const XLATE_RULES = [
+  { key:"pdh", label:"PDH", sys:"Engineering & surveying boards", val:c => c.pdh ? `${fmtN(c.pdh)}${c.ethics ? ` · ${fmtN(c.ethics)} ethics` : ""}` : "0" },
+  { key:"pdu", label:"PDU", sys:"PMI certifications", val:c => c.pdu ? `${fmtN(c.pdu)} · ${pduDetail(c)}` : "0" },
+  { key:"ceu", label:"CEU", sys:"IACET-style CEU", val:c => c.ceu ? fmtN(c.ceu) : "0" },
+  { key:"sch", label:"Academic credit", sys:"Schools (estimate)", val:c => c.sch ? `${fmtN(c.sch)} semester hr` : "0" }
+];
+function creditParts(c){
+  const out = [];
+  if (c.pdh) out.push(["pdh", `${fmtN(c.pdh)} PDH`]);
+  if (c.pdu) out.push(["pdu", `${fmtN(c.pdu)} PDU`]);
+  if (c.ceu) out.push(["ceu", `${fmtN(c.ceu)} CEU`]);
+  if (c.sch) out.push(["sch", `${fmtN(c.sch)} semester hr`]);
+  return out;
+}
+const creditLine = c => creditParts(c).map(x => x[1]).join("  ·  ");
+const chips = c => { const p = creditParts(c); return p.length ? `<span class="chips">${p.map(([k,t]) => `<span class="chip ${k}">${esc(t)}</span>`).join("")}</span>` : '<span class="muted">—</span>'; };
+function credOf(c){ return normalize(c.credits || computeCredits(prog(c.programId) || { hours:c.hours })); }
+
+/* requirement rules a learner can track (typical patterns; each board sets its own) */
+const REQS = {
+  "ncees": { name:"PE license · NCEES CPC standard", months:12, pdh:15, ethics:1, note:"15 PDH per year, at least 1 in ethics. Many state boards set their own rules, so confirm with yours." },
+  "pe2":   { name:"PE license · 30 PDH every 2 years", months:24, pdh:30, ethics:1, note:"A common biennial pattern. Confirm hours and ethics minimums with your state board." },
+  "pmp":   { name:"PMP · PMI", months:36, pdu:60, edMin:35, areaMin:8, gbMax:25, practMax:8, note:"60 PDUs per 3-year cycle: at least 35 Education (8+ in each Talent Triangle area), at most 25 Giving Back, of which at most 8 from working as a practitioner. Confirm in PMI's CCR handbook." },
+  "capm":  { name:"CAPM · PMI", months:36, pdu:15, note:"15 PDUs per 3-year cycle." },
+  "ceu2":  { name:"Continuing education · 2.0 CEU every 2 years", months:24, ceu:2, note:"Example rule. Set the amount your certifying body requires with Custom." },
+  "custom":{ name:"Custom requirement", custom:true, note:"Set the credit type, amount and cycle length." }
+};
+function licenseProgress(lic, creds){
+  const inCycle = creds.filter(c => c.status !== "revoked" && c.issuedOn >= lic.cycleStart && c.issuedOn <= lic.cycleEnd);
+  const sum = k => inCycle.reduce((a, c) => a + (+credOf(c)[k] || 0), 0);
+  const items = [];
+  if (lic.pdh) items.push({ key:"pdh", label:"PDH", need:+lic.pdh });
+  if (lic.ethics) items.push({ key:"ethics", label:"Ethics PDH", need:+lic.ethics, sub:true });
+  const capped = {};
+  if (lic.pdu){
+    const ed = sum("pduEd"), pract = Math.min(lic.practMax ?? Infinity, sum("pduPract")), gbOther = sum("pduGB") - sum("pduPract");
+    const gb = Math.min(lic.gbMax ?? Infinity, gbOther + pract);
+    capped.pdu = ed + gb;
+    items.push({ key:"pdu", label:"PDU", need:+lic.pdu, note: (gbOther + sum("pduPract")) > gb ? "Giving Back over the cap isn't counted" : "" });
+    if (lic.edMin) items.push({ key:"pduEd", label:"Education PDU", need:+lic.edMin, sub:true });
+  }
+  if (lic.areaMin) [["pduWW","Ways of Working"],["pduPS","Power Skills"],["pduBA","Business Acumen"]].forEach(([k,l]) => items.push({ key:k, label:l, need:+lic.areaMin, sub:true }));
+  if (lic.ceu) items.push({ key:"ceu", label:"CEU", need:+lic.ceu });
+  if (lic.sch) items.push({ key:"sch", label:"Semester credit hrs", need:+lic.sch });
+  items.forEach(i => { i.have = i.key in capped ? capped[i.key] : sum(i.key); i.gap = Math.max(0, i.need - i.have); });
+  return { items, done: items.every(i => !i.gap), count: inCycle.length };
+}
+/* what a program would contribute to each open gap */
+function contribution(p, licProgs){
+  const c = computeCredits(p); let score = 0; const hits = [];
+  licProgs.forEach(({ lic, pr }) => {
+    const parts = [];
+    pr.items.forEach(i => { const v = Math.min(i.gap, +c[i.key] || 0); if (v > 0){ parts.push(`${fmtN(v)} ${i.label}`); if (!i.sub) score += i.key === "ceu" ? v * 10 : v; else score += v * 0.5; } });
+    if (parts.length) hits.push({ name: lic.name, parts });
+  });
+  return { c, score, hits };
+}
+
+/* learners */
+const learnerKey = (email, name) => String((email || "").trim().toLowerCase() || (name || "").trim().toLowerCase()).replace(/[^A-Za-z0-9_\-.~:@+]/g, "_").slice(0, 180) || "unknown";
+function learners(){
+  const map = new Map();
+  S.creds.forEach(c => { const k = learnerKey(c.recipientEmail, c.recipientName);
+    if (!map.has(k)) map.set(k, { id:k, name:c.recipientName, email:c.recipientEmail || "", creds:[], licenses:[] });
+    map.get(k).creds.push(c); });
+  S.learnersArr.forEach(l => { const m = map.get(l.id) || { id:l.id, name:l.name, email:l.email || "", creds:[], licenses:[] };
+    m.licenses = l.licenses || []; m.activities = l.activities || []; m.doc = l; if (l.sample) m.sample = true; map.set(l.id, m); });
+  const out = [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
+  out.forEach(L => { L.activities = L.activities || [];
+    L.records = L.creds.concat(L.activities.map(a => ({ id:a.id, self:true, programName:a.title, issuedOn:a.date, status:"active", credits:a.credits, activity:a.activity, evidence:a.evidence }))); });
+  return out;
+}
+const licProgsFor = L => (L.licenses || []).map(lic => ({ lic, pr: licenseProgress(lic, L.records) }));
+function activityProgram(x){
+  const area = ["technical","leadership","business","ethics"].includes(x.area) ? x.area : "technical";
+  return { activity:x.activity, topicHours: x.topicHours || { [area]: +x.hours || 0 }, count:x.count, units:x.units, unitType:x.unitType, firstTime:!!x.firstTime, gbHours:x.gbHours, offers:ALL_OFFERS };
+}
+
+/* ---------- certificate renderer ---------- */
+function wrapText(ctx, text, maxW){
+  const words = String(text||"").split(/\s+/), lines = []; let line = "";
+  for (const w of words){ const t = line ? line + " " + w : w; if (ctx.measureText(t).width > maxW && line){ lines.push(line); line = w; } else line = t; }
+  if (line) lines.push(line); return lines;
+}
+function fitFont(ctx, text, family, weight, max, min, maxW, italic){
+  let s = max; do { ctx.font = `${italic?"italic ":""}${weight} ${s}px ${family}`; s -= 2; } while (ctx.measureText(text).width > maxW && s > min); return s+2;
+}
+function rosette(ctx, cx, cy, R, r, d, color, alpha, turns){
+  ctx.save(); ctx.strokeStyle = color; ctx.globalAlpha = alpha; ctx.lineWidth = 0.9; ctx.beginPath();
+  const N = 2400;
+  for (let i=0;i<=N;i++){ const t = i/N*Math.PI*2*turns;
+    const x = cx + (R-r)*Math.cos(t) + d*Math.cos((R-r)/r*t);
+    const y = cy + (R-r)*Math.sin(t) - d*Math.sin((R-r)/r*t);
+    i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); }
+  ctx.stroke(); ctx.restore();
+}
+function guillocheBand(ctx, x0, y0, w, h, color, alpha){
+  ctx.save(); ctx.strokeStyle = color; ctx.globalAlpha = alpha; ctx.lineWidth = 0.8;
+  for (let k=0;k<6;k++){ ctx.beginPath();
+    for (let x=0;x<=w;x+=3){ const y = y0 + h/2 + Math.sin(x/w*Math.PI*26 + k*0.55)*h*0.42*Math.cos(x/w*Math.PI*2 + k*0.3);
+      x ? ctx.lineTo(x0+x,y) : ctx.moveTo(x0+x,y); }
+    ctx.stroke(); }
+  ctx.restore();
+}
+function seal(ctx, cx, cy, r, color, gold, text){
+  ctx.save();
+  ctx.beginPath(); const spikes = 48;
+  for (let i=0;i<=spikes*2;i++){ const a = i/(spikes*2)*Math.PI*2, rr = i%2 ? r : r*0.93; ctx.lineTo(cx+rr*Math.cos(a), cy+rr*Math.sin(a)); }
+  ctx.fillStyle = gold; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx,cy,r*0.84,0,Math.PI*2); ctx.fillStyle = color; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx,cy,r*0.8,0,Math.PI*2); ctx.strokeStyle = gold; ctx.lineWidth = 2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,r*0.52,0,Math.PI*2); ctx.stroke();
+  rosette(ctx, cx, cy, r*0.5, r*0.5/7, r*0.18, gold, 0.75, 1);
+  ctx.fillStyle = gold; ctx.font = `600 ${r*0.12}px "Geist", sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const t = (" " + text.toUpperCase() + " • ").repeat(3).slice(0, 64), step = Math.PI*2 / t.length;
+  for (let i=0;i<t.length;i++){ ctx.save(); ctx.translate(cx,cy); ctx.rotate(-Math.PI/2 + i*step); ctx.translate(0,-r*0.66); ctx.fillText(t[i],0,0); ctx.restore(); }
+  ctx.restore();
+}
+function drawCert(canvas, d){
+  const ctx = canvas.getContext("2d"), W = canvas.width, H = canvas.height;
+  const color = d.color || COLORS[0], gold = "#B08A3E", ink = "#1A1D2E", soft = "#6A6F86";
+  const style = d.style || "classic";
+  ctx.clearRect(0,0,W,H); ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = "#FDFCF9"; ctx.fillRect(0,0,W,H);
+  let cx = W/2, contentW = 1180, top = 0;
+  const DISPLAY = '"Bodoni Moda", Didot, Georgia, serif', SANS = '"Geist", Helvetica, Arial, sans-serif', MONO = '"Geist Mono", Menlo, monospace';
+
+  if (style === "classic"){
+    ctx.fillStyle = color; ctx.globalAlpha = 0.035; ctx.fillRect(0,0,W,H); ctx.globalAlpha = 1;
+    ctx.strokeStyle = color; ctx.lineWidth = 14; ctx.strokeRect(40,40,W-80,H-80);
+    ctx.strokeStyle = gold; ctx.lineWidth = 2; ctx.strokeRect(66,66,W-132,H-132); ctx.strokeRect(74,74,W-148,H-148);
+    guillocheBand(ctx, 90, 86, W-180, 34, color, 0.28); guillocheBand(ctx, 90, H-120, W-180, 34, color, 0.28);
+    rosette(ctx, W/2, H/2+20, 330, 330/9, 150, color, 0.06, 1);
+    top = 210;
+  } else if (style === "modern"){
+    ctx.fillStyle = color; ctx.fillRect(0,0,300,H);
+    for (let i=0;i<5;i++) rosette(ctx, 150, 260 + i*170, 110, 110/(6+i), 46, "#FFFFFF", 0.12, 1);
+    ctx.fillStyle = gold; ctx.fillRect(300,0,8,H);
+    cx = 308 + (W-308)/2; contentW = 1080; top = 190;
+  } else {
+    ctx.strokeStyle = "#D9D6CC"; ctx.lineWidth = 2; ctx.strokeRect(60,60,W-120,H-120);
+    ctx.fillStyle = color; ctx.fillRect(W/2-60, 60, 120, 6);
+    top = 220;
+  }
+
+  // header
+  ctx.fillStyle = style === "minimal" ? soft : color;
+  ctx.font = `600 26px ${SANS}`; ctx.letterSpacing = "6px";
+  ctx.fillText((d.orgName || "Your organization").toUpperCase(), cx, top);
+  ctx.letterSpacing = "0px";
+  ctx.fillStyle = ink;
+  const title = d.title || "Certificate of Completion";
+  fitFont(ctx, title, DISPLAY, 500, 84, 44, contentW, style !== "minimal");
+  ctx.fillText(title, cx, top + 105);
+  ctx.fillStyle = gold; ctx.fillRect(cx-70, top+140, 140, 3);
+
+  ctx.fillStyle = soft; ctx.font = `400 26px ${SANS}`;
+  ctx.fillText("This certifies that", cx, top + 210);
+  const name = d.recipientName || "Recipient Name";
+  ctx.fillStyle = ink; fitFont(ctx, name, DISPLAY, 600, 104, 48, contentW, true);
+  ctx.fillText(name, cx, top + 320);
+  ctx.strokeStyle = "#CFCBBF"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx-360, top+350); ctx.lineTo(cx+360, top+350); ctx.stroke();
+
+  ctx.fillStyle = soft; ctx.font = `400 27px ${SANS}`;
+  const stmt = (d.statement || "has successfully completed all requirements of") .trim();
+  let y = top + 405;
+  for (const ln of wrapText(ctx, stmt, contentW-120).slice(0,2)){ ctx.fillText(ln, cx, y); y += 38; }
+  ctx.fillStyle = color; fitFont(ctx, d.programName || "Program name", DISPLAY, 600, 50, 30, contentW, false);
+  ctx.fillText(d.programName || "Program name", cx, y + 22); y += 22;
+  const meta = [d.grade, d.credits ? creditLine(d.credits) : (d.hours ? `${d.hours} learning hours` : "")].filter(Boolean).join("  ·  ");
+  if (meta){ ctx.fillStyle = soft; ctx.font = `italic 400 26px ${DISPLAY}`; ctx.fillText(meta, cx, y + 46); y += 46; }
+  if (d.skills && d.skills.length){
+    ctx.font = `500 20px ${SANS}`; ctx.fillStyle = soft; ctx.letterSpacing = "2px";
+    const s = d.skills.slice(0,6).join("   •   ").toUpperCase();
+    fitFont(ctx, s, SANS, 500, 20, 14, contentW-80); ctx.fillText(s, cx, y + 46); ctx.letterSpacing = "0px";
+  }
+
+  // footer: date | seal | signature
+  const fy = H - (style === "classic" ? 225 : 190);
+  const left = cx - (style === "modern" ? 380 : 450), right = cx + (style === "modern" ? 380 : 450);
+  ctx.strokeStyle = "#9A9688"; ctx.lineWidth = 1.5;
+  [left,right].forEach(x => { ctx.beginPath(); ctx.moveTo(x-170,fy); ctx.lineTo(x+170,fy); ctx.stroke(); });
+  ctx.fillStyle = ink; ctx.font = `500 30px ${DISPLAY}`;
+  ctx.fillText(fmtDate(d.issuedOn || todayISO()), left, fy - 16);
+  ctx.font = `italic 500 40px ${DISPLAY}`; ctx.fillText(d.signerName || "Signer Name", right, fy - 14);
+  ctx.fillStyle = soft; ctx.font = `500 19px ${SANS}`; ctx.letterSpacing = "2px";
+  ctx.fillText("DATE OF AWARD", left, fy + 34);
+  ctx.fillText((d.signerTitle || "Authorized signatory").toUpperCase(), right, fy + 34); ctx.letterSpacing = "0px";
+  if (style !== "minimal") seal(ctx, cx, fy - 10, 104, color, gold, d.orgName || "Verified");
+  else { ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, fy-10, 62, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle = color; ctx.font = `600 18px ${SANS}`; ctx.letterSpacing = "3px"; ctx.fillText("VERIFIED", cx, fy - 4); ctx.letterSpacing = "0px"; }
+
+  // ID line
+  const idY = H - (style === "classic" ? 140 : 96);
+  ctx.fillStyle = soft; ctx.font = `500 19px ${MONO}`;
+  const exp = d.expiresOn ? `   ·   VALID UNTIL ${fmtDate(d.expiresOn).toUpperCase()}` : "";
+  const site = d.website ? `   ·   ${d.website}` : "";
+  ctx.fillText(`CREDENTIAL ID  ${d.id || "ASSIGNED ON ISSUE"}${exp}${site}`, cx, idY);
+  if (d.status === "revoked"){
+    ctx.save(); ctx.translate(W/2,H/2); ctx.rotate(-0.32); ctx.globalAlpha = 0.18; ctx.fillStyle = "#B0303D";
+    ctx.font = `700 220px ${SANS}`; ctx.fillText("REVOKED", 0, 70); ctx.restore();
+  }
+}
+/* ---------- badges ---------- */
+const ICONS = {
+  book:["Learning","M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5zM4 20.5V5.5M8 7h8"],
+  chip:["Technology","M7 7h10v10H7zM10 10h4v4h-4zM9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4"],
+  bolt:["Power","M13 2L4 14h7l-1 8 9-12h-7z"],
+  gear:["Engineering","M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 1 0 0-7zM12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"],
+  flask:["Science","M9 3h6M10 3v6L4.6 18.6A1.6 1.6 0 0 0 6 21h12a1.6 1.6 0 0 0 1.4-2.4L14 9V3M7.5 15h9"],
+  people:["Leadership","M9 11a3.2 3.2 0 1 0 0-6.4A3.2 3.2 0 0 0 9 11zM3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.8a3.2 3.2 0 0 1 0 6.2M18 14.3c2 .7 3 2.8 3 5.7"],
+  shield:["Safety","M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM8.5 12l2.5 2.5 4.5-5"],
+  leaf:["Sustainability","M5 19C5 10 11 5 20 4c-1 9-6 15-15 15zM5 19l7-7"],
+  tower:["Comms","M12 6l-5 15M12 6l5 15M8.6 16h6.8M10 11.5h4M12 6V4M8 3.5a5 5 0 0 0 0 5M16 3.5a5 5 0 0 1 0 5"],
+  star:["Achievement","M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"]
+};
+const TRIMS = ["#B08A3E","#C9CED8","#C27A4A","#FFFFFF"];
+const ACT_ICON = { course:"book", conference:"people", meeting:"people", selfstudy:"book", college:"book", teaching:"people", presentation:"tower", publication:"book", patent:"bolt", society:"people", examq:"star", mentoring:"people", practitioner:"gear" };
+function badgeOf(p){
+  const b = p?.badge || {};
+  return { shape: b.shape || "shield", icon: ICONS[b.icon] ? b.icon : (ACT_ICON[p?.activity] || "star"), label: (b.label || p?.name || "Credential").toUpperCase().slice(0, 28),
+    level: b.level || "", accent: b.accent || TRIMS[0], showCredit: b.showCredit !== false };
+}
+function shapePath(ctx, shape, cx, cy, r){
+  ctx.beginPath();
+  if (shape === "hex"){ for (let i = 0; i < 6; i++){ const a = Math.PI / 180 * (60 * i - 90); const x = cx + r * Math.cos(a), y = cy + r * Math.sin(a); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.closePath(); }
+  else if (shape === "shield"){ ctx.moveTo(cx, cy - r); ctx.lineTo(cx + r * .86, cy - r * .66); ctx.lineTo(cx + r * .86, cy + r * .02);
+    ctx.bezierCurveTo(cx + r * .86, cy + r * .6, cx + r * .42, cy + r * .9, cx, cy + r); ctx.bezierCurveTo(cx - r * .42, cy + r * .9, cx - r * .86, cy + r * .6, cx - r * .86, cy + r * .02);
+    ctx.lineTo(cx - r * .86, cy - r * .66); ctx.closePath(); }
+  else if (shape === "ribbon"){ const n = 28; for (let i = 0; i <= n * 2; i++){ const a = i / (n * 2) * Math.PI * 2 - Math.PI / 2, rr = i % 2 ? r : r * .94; const x = cx + rr * Math.cos(a), y = cy + rr * Math.sin(a); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.closePath(); }
+  else ctx.arc(cx, cy, r, 0, Math.PI * 2);
+}
+function drawBadge(canvas, d){
+  const ctx = canvas.getContext("2d"), W = canvas.width, cx = W / 2, cy = d.shape === "ribbon" ? 262 : 292;
+  const col = d.color || COLORS[0], acc = d.accent || TRIMS[0], ink = acc === "#FFFFFF" || acc === "#C9CED8" ? "#1A1D2E" : "#1A1D2E";
+  const SANS = '"Geist", Helvetica, Arial, sans-serif', DISPLAY = '"Bodoni Moda", Didot, Georgia, serif', MONO = '"Geist Mono", Menlo, monospace';
+  ctx.clearRect(0, 0, W, W); ctx.textAlign = "center"; ctx.letterSpacing = "0px";
+  const R = d.shape === "ribbon" ? 215 : 238;
+  if (d.shape === "ribbon"){ ctx.fillStyle = acc; [-1, 1].forEach(s => { ctx.beginPath(); ctx.moveTo(cx + s * 30, cy + 150); ctx.lineTo(cx + s * 120, cy + 320); ctx.lineTo(cx + s * 80, cy + 300); ctx.lineTo(cx + s * 52, cy + 334); ctx.lineTo(cx - s * 30, cy + 170); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = col; ctx.globalAlpha = .55; ctx.fill(); ctx.globalAlpha = 1; ctx.fillStyle = acc; }); }
+  ctx.save(); ctx.shadowColor = "rgba(10,14,40,.28)"; ctx.shadowBlur = 26; ctx.shadowOffsetY = 10; shapePath(ctx, d.shape, cx, cy, R); ctx.fillStyle = acc; ctx.fill(); ctx.restore();
+  shapePath(ctx, d.shape === "ribbon" ? "circle" : d.shape, cx, cy, R - 14); ctx.fillStyle = col; ctx.fill();
+  const g = ctx.createRadialGradient(cx, cy - 110, 10, cx, cy, R); g.addColorStop(0, "rgba(255,255,255,.22)"); g.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = g; ctx.fill();
+  shapePath(ctx, d.shape === "ribbon" ? "circle" : d.shape, cx, cy, R - 26); ctx.strokeStyle = acc; ctx.globalAlpha = .55; ctx.lineWidth = 2; ctx.stroke(); ctx.globalAlpha = 1;
+  rosette(ctx, cx, cy - 44, 118, 118 / 7, 44, "#FFFFFF", .09, 1);
+  ctx.fillStyle = acc; ctx.font = `600 20px ${SANS}`; ctx.letterSpacing = "4px";
+  const org = (d.org || "").toUpperCase(); fitFont(ctx, org, SANS, 600, 20, 12, d.shape === "shield" ? 300 : 320); ctx.fillText(org, cx, cy - 152); ctx.letterSpacing = "0px";
+  ctx.beginPath(); ctx.arc(cx, cy - 48, 70, 0, Math.PI * 2); ctx.fillStyle = "rgba(255,255,255,.10)"; ctx.fill(); ctx.strokeStyle = acc; ctx.lineWidth = 3; ctx.stroke();
+  ctx.save(); ctx.translate(cx - 48, cy - 96); ctx.scale(4, 4); ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 1.5; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.stroke(new Path2D((ICONS[d.icon] || ICONS.star)[1])); ctx.restore();
+  const by = cy + 66, bw = 236;
+  ctx.fillStyle = acc; ctx.beginPath(); ctx.moveTo(cx - bw, by - 32); ctx.lineTo(cx + bw, by - 32); ctx.lineTo(cx + bw + 22, by); ctx.lineTo(cx + bw, by + 32); ctx.lineTo(cx - bw, by + 32); ctx.lineTo(cx - bw - 22, by); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = ink; ctx.textBaseline = "middle"; fitFont(ctx, d.label, SANS, 700, 32, 16, 430); ctx.fillText(d.label, cx, by + 2); ctx.textBaseline = "alphabetic";
+  let y = cy + 136;
+  if (d.level){ ctx.fillStyle = "#FFFFFF"; fitFont(ctx, d.level, DISPLAY, 500, 30, 18, 300, true); ctx.fillText(d.level, cx, y); y += 40; }
+  if (d.showCredit && d.credits){ const t = creditParts(d.credits).slice(0, 2).map(x => x[1]).join(" · ");
+    if (t){ ctx.fillStyle = acc; fitFont(ctx, t, MONO, 500, 20, 13, d.shape === "shield" ? 240 : 300); ctx.fillText(t, cx, y); } }
+  if (d.status === "revoked"){ ctx.save(); ctx.translate(cx, cy); ctx.rotate(-.35); ctx.fillStyle = "rgba(176,48,61,.85)"; ctx.font = `700 64px ${SANS}`; ctx.fillText("REVOKED", 0, 20); ctx.restore(); }
+}
+function badgeData(c, p){ p = p || prog(c.programId) || {}; const b = c.badge ? { ...badgeOf(p), ...c.badge } : badgeOf(p.id ? p : { name:c.programName, activity:c.credits?.activity });
+  return { ...b, color: p.color || c.color || COLORS[0], org: S.org.name, credits: c.credits ? normalize(c.credits) : computeCredits(p), status: c.status }; }
+function linkedInUrls(c){
+  const link = verifyLink(c.id), [y, m] = (c.issuedOn || todayISO()).split("-");
+  const ps = new URLSearchParams({ startTask:"CERTIFICATION_NAME", name:c.programName, organizationName:S.org.name || "Issuer", issueYear:y, issueMonth:String(+m), certId:c.id });
+  if (c.expiresOn){ const [ey, em] = c.expiresOn.split("-"); ps.set("expirationYear", ey); ps.set("expirationMonth", String(+em)); }
+  if (link) ps.set("certUrl", link);
+  return { add:"https://www.linkedin.com/profile/add?" + ps.toString(), share: link ? "https://www.linkedin.com/sharing/share-offsite/?url=" + encodeURIComponent(link) : "" };
+}
+function openBadge(c){
+  const cr = credOf(c), link = verifyLink(c.id), issuerId = S.org.website ? (/^https?:/.test(S.org.website) ? S.org.website : "https://" + S.org.website) : "urn:attest:issuer:" + learnerKey("", S.org.name);
+  return { "@context":["https://www.w3.org/ns/credentials/v2","https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json"],
+    id: link || "urn:attest:credential:" + c.id, type:["VerifiableCredential","OpenBadgeCredential"],
+    issuer:{ id:issuerId, type:["Profile"], name:S.org.name },
+    validFrom:(c.issuedOn || todayISO()) + "T00:00:00Z", ...(c.expiresOn ? { validUntil:c.expiresOn + "T23:59:59Z" } : {}),
+    name:c.programName,
+    credentialSubject:{ type:["AchievementSubject"], ...(c.recipientEmail ? { identifier:[{ type:"IdentityObject", identityType:"emailAddress", hashed:false, identityHash:c.recipientEmail }] } : {}),
+      ...(cr.contactHours ? { creditsEarned:cr.contactHours } : {}),
+      achievement:{ id:"urn:attest:achievement:" + (c.programId || "x"), type:["Achievement"], name:c.programName, description:`${c.title || "Credential"}: ${c.statement || ""}`.trim(),
+        criteria:{ narrative:c.statement || "Completed the program requirements." }, ...(c.skills?.length ? { tag:c.skills } : {}) },
+      attestCredits:{ pdh:cr.pdh || 0, ethicsPdh:cr.ethics || 0, pdu:cr.pdu || 0, ceu:cr.ceu || 0, semesterHours:cr.sch || 0 } },
+    credentialStatus:{ type:"AttestStatus", status:statusOf(c) } };
+}
+
+function certData(c, p){
+  p = p || prog(c.programId) || {};
+  return { id:c.id, recipientName:c.recipientName, programName:c.programName || p.name, title:c.title || p.title,
+    statement:c.statement || p.description, skills:c.skills || p.skills || [], hours:c.hours ?? p.hours, grade:c.grade,
+    credits: c.credits || (p.id || p.topicHours || p.hours ? computeCredits(p) : null),
+    issuedOn:c.issuedOn, expiresOn:c.expiresOn, status:c.status,
+    style:p.style || c.style || "classic", color:p.color || c.color || COLORS[0],
+    signerName:c.signerName || p.signerName || S.org.signerName, signerTitle:c.signerTitle || p.signerTitle || S.org.signerTitle,
+    orgName:S.org.name, website:S.org.website };
+}
+
+/* ---------- data layer ---------- */
+const ARR = { programs:"programs", credentials:"creds", learners:"learnersArr" };
+async function put(col, id, data){
+  if (S.db){ await S.db.collection(col).doc(id).set(data); }
+  else { const arr = S[ARR[col]]; const i = arr.findIndex(x => x.id === id); i >= 0 ? arr[i] = {...data, id} : arr.unshift({...data, id}); persist(); renderAll(); }
+}
+async function patch(col, id, data){
+  if (S.db){ await S.db.collection(col).doc(id).update(data); }
+  else { const arr = S[ARR[col]]; const o = arr.find(x => x.id === id); Object.assign(o, data); persist(); renderAll(); }
+}
+async function del(col, id){
+  if (S.db){ await S.db.collection(col).doc(id).delete(); }
+  else { const arr = S[ARR[col]]; const i = arr.findIndex(x => x.id === id); if (i>=0) arr.splice(i,1); persist(); renderAll(); }
+}
+async function saveOrg(o){
+  if (S.db) await S.db.doc("org/settings").set(o); else { S.org = o; persist(); renderAll(); }
+}
+function persist(){ if (S.standalone && window.AttestStore && !AttestStore.save(S)) toast("This browser couldn't save. Allow site data for this page."); }
+function newCredId(){
+  const pre = (S.org.prefix || "CRT").toUpperCase().replace(/[^A-Z0-9]/g,"") || "CRT";
+  let id; do { id = `${pre}-${rand(4)}-${rand(4)}`; } while (S.creds.some(c => c.id === id)); return id;
+}
+function buildCred(p, r, issuedOn){
+  const full = totalHours(p), att = r.hours !== undefined && r.hours !== "" && r.hours !== null ? Math.max(0, +r.hours) : null;
+  const ratio = att !== null && full ? Math.min(1, att / full) : 1;
+  const credits = computeCredits(p, ratio); delete credits.why;
+  return { id:newCredId(), recipientName:r.name.trim(), recipientEmail:(r.email||"").trim(), grade:(r.grade||"").trim(),
+    programId:p.id, programName:p.name, title:p.title || "Certificate of Completion", statement:p.description || "",
+    skills:p.skills || [], hours:credits.contactHours || null, credits, badge: badgeOf(p), color: p.color || null, attendance: ratio < 1 ? ratio : 1, approvals:p.approvals || "", issuedOn, expiresOn: Number(p.validityMonths) ? addMonths(issuedOn, p.validityMonths) : null,
+    signerName:p.signerName || S.org.signerName || "", signerTitle:p.signerTitle || S.org.signerTitle || "",
+    status:"active", issuedAt:Date.now() };
+}
+
+/* ---------- toast ---------- */
+let tt; function toast(msg){ const t = $("#toast"); t.hidden = true; void t.offsetWidth; t.textContent = msg; t.hidden = false; clearTimeout(tt); tt = setTimeout(() => t.hidden = true, 2600); }
+async function copy(text){ try { await navigator.clipboard.writeText(text); toast("Copied to clipboard"); } catch { toast("Copy failed. Select the text and copy it manually."); return false; } return true; }
+
+/* ---------- navigation ---------- */
+const TITLES = { dashboard:"Overview", agent:"Agent", issue:"Issue", credentials:"Credentials", learners:"Learners", programs:"Programs", verify:"Verify", settings:"Settings" };
+function setDrawer(open){ $("#side").classList.toggle("open", open); $("#scrim").hidden = !open; $("#menuBtn").setAttribute("aria-expanded", String(open)); }
+$("#menuBtn").addEventListener("click", () => setDrawer(!$("#side").classList.contains("open")));
+$("#scrim").addEventListener("click", () => setDrawer(false));
+function go(tab){
+  const changed = !!$(`section.view[data-view="${tab}"]`)?.hidden;
+  $$("#tabs button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === tab)));
+  $$("section.view").forEach(s => s.hidden = s.dataset.view !== tab);
+  $("#pageTitle").textContent = TITLES[tab] || "";
+  setDrawer(false);
+  if (changed) try { window.scrollTo({ top:0, behavior:"instant" }); } catch { window.scrollTo(0, 0); }
+  if (tab === "issue") drawIssuePreview();
+  if (tab === "programs") drawProgPreview();
+  if (tab === "settings") fillOrgForm();
+  try { localStorage.setItem("attest.tab", tab); } catch {}
+}
+$("#tabs").addEventListener("click", e => { const b = e.target.closest("button[data-tab]"); if (b) go(b.dataset.tab); });
+document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
+
+/* ---------- overview ---------- */
+const daysUntil = iso => Math.round((new Date(iso + "T12:00:00") - new Date(todayISO() + "T12:00:00")) / 86400000);
+const whenText = d => d < 0 ? `${-d} days overdue` : d === 0 ? "today" : d === 1 ? "tomorrow" : d < 60 ? `in ${d} days` : `in ${Math.round(d / 30)} months`;
+function renderOverview(){
+  const now = new Date();
+  $("#dashDate").textContent = now.toLocaleDateString(undefined, { weekday:"long", month:"long", day:"numeric" });
+  const h = now.getHours(); $("#dashTitle").textContent = `${h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"}`;
+
+  const live = S.creds.filter(c => c.status !== "revoked");
+  const sum = k => live.reduce((a, c) => a + (+credOf(c)[k] || 0), 0);
+  const counts = { active:0, expired:0, revoked:0 }; S.creds.forEach(c => counts[statusOf(c)]++);
+  const monthAgo = addMonths(todayISO(), -1), lastMonth = S.creds.filter(c => (c.issuedOn || "") >= monthAgo).length;
+  $("#stIssued").textContent = S.creds.length;
+  $("#stIssuedSub").textContent = `${lastMonth} in the last 30 days · ${counts.active} active`;
+  const tots = [["PDH", sum("pdh")], ["PDU", sum("pdu")], ["CEU", sum("ceu")], ["Sem. hrs", sum("sch")]];
+  $("#stCredit").innerHTML = tots.map(([l, v]) => `<span><strong>${fmtN(v)}</strong><small>${l}</small></span>`).join("");
+
+  // attention queue: license gaps (soonest cycle end), expiring credentials, pending approvals
+  const items = [];
+  const Ls = learners(); let withGaps = 0, tracked = 0;
+  Ls.forEach(L => {
+    const lp = licProgsFor(L); if (lp.length) tracked++;
+    let gap = false;
+    lp.forEach(({ lic, pr }) => { if (pr.done) return; gap = true;
+      const d = daysUntil(lic.cycleEnd), main = pr.items.filter(i => i.gap).slice(0, 3).map(i => `${fmtN(i.gap)} ${i.label}`).join(", ");
+      const rec = S.programs.map(p => ({ p, ...contribution(p, [{ lic, pr }]) })).filter(r => r.hits.length).sort((a, b) => b.score - a.score)[0];
+      items.push({ sev: d < 30 ? "bad" : "", d, html:`<strong>${esc(L.name)}</strong> needs ${esc(main)}<span class="meta">${esc(lic.name)} · cycle ends ${whenText(d)}${rec ? ` · best fit: ${esc(rec.p.name)}` : ""}</span>`,
+        acts:`${rec ? `<button class="btn" data-rec="${esc(rec.p.id)}" data-learner-id="${esc(L.id)}">Issue ${esc(rec.p.name.length > 22 ? "best fit" : rec.p.name)}</button>` : ""}<button class="btn ghost" data-open-learner="${esc(L.id)}">Open</button>` }); });
+    if (gap) withGaps++;
+  });
+  const soon = addMonths(todayISO(), 2);
+  S.creds.filter(c => statusOf(c) === "active" && c.expiresOn && c.expiresOn <= soon).forEach(c => {
+    const d = daysUntil(c.expiresOn);
+    items.push({ sev: d < 30 ? "bad" : "", d, html:`<strong>${esc(c.recipientName)}</strong>'s ${esc(c.programName)} credential expires ${whenText(d)}<span class="meta mono">${esc(c.id)}</span>`, acts:`<button class="btn ghost" data-cred="${esc(c.id)}">View</button>` });
+  });
+  const waiting = (S.pending || []).filter(p => p.state === "waiting").length;
+  if (waiting) items.unshift({ sev:"info", d:-999, html:`<strong>${waiting} agent action${waiting > 1 ? "s" : ""} waiting for approval</strong><span class="meta">Review before anything is saved</span>`, acts:`<button class="btn primary" data-go="agent">Review</button>` });
+  items.sort((a, b) => a.d - b.d);
+  $("#stLearners").textContent = Ls.length;
+  $("#stLearnersSub").textContent = `${tracked} with licenses tracked · ${withGaps} with open gaps`;
+  $("#stAttention").textContent = items.length;
+  $("#dashSub").textContent = items.length ? `${items.length} item${items.length > 1 ? "s" : ""} need${items.length > 1 ? "" : "s"} attention${waiting ? `, including ${waiting} waiting for your approval` : ""}.` : "Everything is up to date.";
+  $("#attention").innerHTML = items.length ? items.slice(0, 6).map(i => `<div class="att ${i.sev}"><span class="sev"></span><div>${i.html}</div><div class="acts">${i.acts}</div></div>`).join("")
+    + (items.length > 6 ? `<span class="hint">${items.length - 6} more on the Learners and Credentials tabs</span>` : "")
+    : `<div class="empty">Nothing needs attention. Track learners' licenses on the Learners tab to see upcoming gaps here.</div>`;
+
+  // recent: issued credentials and self-reported activities together
+  const acts = Ls.flatMap(L => L.activities.map(a => ({ self:true, who:L.name, lid:L.id, title:a.title, when:a.loggedAt || 0, date:a.date, credits:a.credits })));
+  const recent = [...S.creds.map(c => ({ c, when:c.issuedAt || 0 })), ...acts.map(a => ({ a, when:a.when }))].sort((x, y) => y.when - x.when).slice(0, 6);
+  $("#recent").innerHTML = recent.length ? `<div class="recent">${recent.map(r => r.c
+      ? `<button data-cred="${esc(r.c.id)}"><span><strong>${esc(r.c.recipientName)}</strong>${r.c.sample ? '<span class="tag">Example</span>' : ""}<span class="muted" style="display:block;font-size:.82rem">Issued ${esc(r.c.programName)} · ${fmtDate(r.c.issuedOn)}</span><span style="display:block;margin-top:4px">${chips(credOf(r.c))}</span></span>${pill(statusOf(r.c))}</button>`
+      : `<button data-open-learner="${esc(r.a.lid)}"><span><strong>${esc(r.a.who)}</strong><span class="tag" style="color:var(--muted)">Self-reported</span><span class="muted" style="display:block;font-size:.82rem">Logged ${esc(r.a.title)} · ${fmtDate(r.a.date)}</span><span style="display:block;margin-top:4px">${chips(normalize(r.a.credits))}</span></span><span></span></button>`).join("")}</div>`
+    : `<div class="empty">No credentials yet. Create a program, then issue your first credential.</div>`;
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-open-learner]"); if (b){ S.selLearner = b.dataset.openLearner; go("learners"); renderLearners(); } });
+$("#askBar").addEventListener("submit", e => {
+  e.preventDefault(); const t = $("#askInput").value.trim(); go("agent");
+  if (!t) { $("#chatInput").focus(); return; }
+  $("#chatInput").value = t; $("#askInput").value = "";
+  if (S.sample) $("#chatForm").requestSubmit(); else $("#chatInput").focus();
+});
+
+/* ---------- renderers ---------- */
+function renderAll(){
+  $("#orgName").textContent = S.org.name || "Your organization";
+  $("#orgInitial").textContent = (S.org.name || "Y").trim().charAt(0).toUpperCase();
+  $("#crumbOrg").textContent = S.org.name || "Attest";
+  renderOverview();
+
+  const progHTML = (p, sel) => { const n = S.creds.filter(c => c.programId === p.id).length;
+    return `<button class="prog" data-prog="${esc(p.id)}" ${sel?'aria-current="true"':''}><span class="bar" style="background:${esc(p.color)}"></span><span><strong>${esc(p.name)}</strong>${p.sample?'<span class="tag">Example</span>':''}<small>${esc(creditLine(computeCredits(p)) || p.title || "Certificate of Completion")} · ${Number(p.validityMonths)?`valid ${p.validityMonths/12} yr`:"no expiry"}</small></span><small class="num">${n} issued</small></button>`; };
+  $("#dashPrograms").innerHTML = S.programs.length ? S.programs.map(p => progHTML(p)).join("") : `<div class="empty">No programs yet.</div>`;
+  $("#progList").innerHTML = S.programs.map(p => progHTML(p, S.editing === p.id)).join("");
+
+  // program selects
+  ["#iProgram","#bProgram"].forEach(sel => { const el = $(sel), v = el.value;
+    el.innerHTML = S.programs.length ? S.programs.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join("") : `<option value="">Create a program first</option>`;
+    if (S.programs.some(p => p.id === v)) el.value = v; });
+  const fp = $("#fProgram"), fv = fp.value;
+  fp.innerHTML = `<option value="">All programs</option>` + S.programs.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join(""); fp.value = fv;
+  $("#clearSamples").hidden = !(S.creds.some(c=>c.sample) || S.programs.some(p=>p.sample) || S.learnersArr.some(l=>l.sample));
+  renderTable();
+  renderLearners();
+  if (!$('[data-view="issue"]').hidden) drawIssuePreview();
+  if (S.viewing){ const c = S.creds.find(x => x.id === S.viewing); if (c) openCred(c.id, true); }
+}
+function renderTable(){
+  const q = $("#fSearch").value.trim().toLowerCase(), fp = $("#fProgram").value, fs = $("#fStatus").value;
+  const rows = [...S.creds].sort((a,b) => (b.issuedAt||0)-(a.issuedAt||0)).filter(c =>
+    (!q || [c.recipientName,c.recipientEmail,c.id].join(" ").toLowerCase().includes(q)) && (!fp || c.programId === fp) && (!fs || statusOf(c) === fs));
+  $("#credTable").innerHTML = !S.creds.length ? `<div class="empty">Credentials you issue will be listed here.</div>`
+    : !rows.length ? `<div class="empty">No credentials match these filters.</div>`
+    : `<div class="tablewrap"><table><thead><tr><th>Recipient</th><th>Program</th><th>Credits</th><th>Credential ID</th><th>Awarded</th><th>Expires</th><th>Status</th></tr></thead><tbody>${rows.map(c => `
+      <tr data-cred="${esc(c.id)}"><td><strong>${esc(c.recipientName)}</strong>${c.sample?'<span class="tag">Example</span>':''}<span class="sub">${esc(c.recipientEmail||"")}</span></td>
+      <td>${esc(c.programName)}</td><td>${chips(credOf(c))}</td><td class="mono">${esc(c.id)}</td><td class="num">${esc(c.issuedOn)}</td><td class="num">${c.expiresOn?esc(c.expiresOn):'<span class="muted">—</span>'}</td><td>${pill(statusOf(c))}</td></tr>`).join("")}</tbody></table></div>`;
+}
+["#fSearch","#fProgram","#fStatus"].forEach(s => $(s).addEventListener("input", renderTable));
+document.addEventListener("click", e => { const r = e.target.closest("[data-cred]"); if (r) openCred(r.dataset.cred); });
+
+/* ---------- credential modal ---------- */
+function verifyLink(id){ return S.org.verifyUrl ? S.org.verifyUrl.replace(/#.*$/,"") + "#" + id : ""; }
+function openCred(id, refresh){
+  const c = S.creds.find(x => x.id === id); if (!c) return; S.viewing = id;
+  const st = statusOf(c);
+  $("#mTitle").textContent = c.recipientName; $("#mEyebrow").textContent = c.programName;
+  drawCert($("#mCanvas"), certData(c));
+  $("#mFacts").innerHTML = `
+    <div><span>Status</span><div>${pill(st)}${c.revokedReason?` <span class="muted" style="font-size:.85rem">${esc(c.revokedReason)}</span>`:""}</div></div>
+    <div><span>Credits</span><div>${chips(credOf(c))}${c.attendance && c.attendance < 1 ? `<div class="hint">Partial credit: ${Math.round(c.attendance*100)}% of program hours attended</div>` : ""}</div></div>
+    <div><span>Credential ID</span><div class="mono">${esc(c.id)}</div></div>
+    <div><span>Recipient email</span><div>${esc(c.recipientEmail||"—")}</div></div>
+    <div><span>Awarded</span><div>${fmtDate(c.issuedOn)}</div></div>
+    <div><span>Valid until</span><div>${c.expiresOn?fmtDate(c.expiresOn):"Does not expire"}</div></div>
+    ${c.skills?.length?`<div><span>Skills</span><div>${esc(c.skills.join(", "))}</div></div>`:""}`;
+  drawBadge($("#mBadge"), badgeData(c));
+  const li = linkedInUrls(c), revoked = st === "revoked";
+  $("#mShare").hidden = revoked;
+  $("#mLiAdd").href = li.add;
+  $("#mLiShare").href = li.share || "#"; $("#mLiShare").setAttribute("aria-disabled", String(!li.share));
+  $("#mLiHint").textContent = li.share ? "LinkedIn shows a “Show credential” button that opens your verification page. Viewers need access to that page."
+    : "Add your verification link in Settings to enable sharing and a “Show credential” button on LinkedIn.";
+  $("#mJson").hidden = !S.downloads;
+  $("#mRevoke").textContent = c.status === "revoked" ? "Restore" : "Revoke";
+  $("#mRevoke").hidden = !S.canEdit; $("#mPng").hidden = !S.downloads;
+  if (!refresh) $("#mConfirm").hidden = true;
+  $("#overlay").hidden = false;
+}
+function closeModal(){ $("#overlay").hidden = true; S.viewing = null; }
+$("#mClose").addEventListener("click", closeModal);
+$("#overlay").addEventListener("click", e => { if (e.target.id === "overlay") closeModal(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#overlay").hidden) closeModal(); });
+$("#mCopy").addEventListener("click", () => {
+  const c = S.creds.find(x => x.id === S.viewing); const link = verifyLink(c.id);
+  copy(link ? `${c.recipientName} — ${c.programName}\nCredential ID: ${c.id}\nVerify: ${link}` : `Credential ID: ${c.id} (verify on the ${S.org.name} credential page)`);
+  if (!link) toast("Copied the ID. Add your verification link in Settings to include a link.");
+});
+$("#mRevoke").addEventListener("click", async () => {
+  const c = S.creds.find(x => x.id === S.viewing);
+  if (c.status === "revoked"){ try { await patch("credentials", c.id, {status:"active", revokedReason:"", revokedAt:null}); toast("Credential restored"); } catch(e){ fail(e); } }
+  else { $("#mConfirm").hidden = false; $("#mReason").focus(); }
+});
+$("#mRevokeNo").addEventListener("click", () => $("#mConfirm").hidden = true);
+$("#mRevokeYes").addEventListener("click", async () => {
+  try { await patch("credentials", S.viewing, {status:"revoked", revokedReason:$("#mReason").value.trim(), revokedAt:Date.now()});
+    $("#mConfirm").hidden = true; $("#mReason").value = ""; toast("Credential revoked"); } catch(e){ fail(e); }
+});
+S.mView = "cert";
+$("#mView").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.mView = b.dataset.v;
+  $$("#mView button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  $("#mCanvas").hidden = S.mView !== "cert"; $("#mBadge").hidden = S.mView !== "badge";
+  $("#mPng").textContent = S.mView === "badge" ? "Download badge" : "Download certificate"; });
+$("#mPng").addEventListener("click", () => {
+  const c = S.creds.find(x => x.id === S.viewing), badge = S.mView === "badge";
+  $(badge ? "#mBadge" : "#mCanvas").toBlob(async blob => {
+    try { await S.downloads.save({filename:`${c.recipientName.replace(/[^\w\- ]+/g,"").trim() || "credential"} - ${badge ? "badge" : "certificate"} - ${c.id}.png`, data:blob}); toast(badge ? "Badge saved" : "Certificate saved"); }
+    catch(e){ if (e?.code !== "declined") toast("The download could not start in this view."); }
+  }, "image/png");
+});
+$("#mJson").addEventListener("click", async () => {
+  const c = S.creds.find(x => x.id === S.viewing);
+  try { await S.downloads.save({ filename:`${c.id}-open-badge.json`, data:JSON.stringify(openBadge(c), null, 2) }); toast("Open Badge data saved"); }
+  catch(e){ if (e?.code !== "declined") toast("The download could not start in this view."); }
+});
+function fail(e){ console.error(e); toast(e?.code === "invalid_argument" ? "You don't have permission to change records here." : e?.code === "quota_exceeded" ? "Storage is full. Remove some records and try again." : "That didn't save. Check your connection and try again."); }
+
+/* ---------- issue ---------- */
+$("#iDate").value = todayISO(); $("#bDate").value = todayISO();
+$("#issueMode").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
+  $$("#issueMode button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  $("#singleForm").hidden = b.dataset.mode !== "single"; $("#bulkForm").hidden = b.dataset.mode !== "bulk"; drawIssuePreview(); });
+function drawIssuePreview(){
+  const bulk = !$("#bulkForm").hidden; const p = prog($(bulk ? "#bProgram" : "#iProgram").value);
+  const r = bulk ? (S.bulkRows.find(x => !x.err) || {name:"Recipient Name"}) : {name:$("#iName").value || "Recipient Name", grade:$("#iGrade").value, hours:$("#iHours").value};
+  const draft = p ? buildCred(p, {name:r.name, grade:r.grade, hours:r.hours}, $(bulk ? "#bDate" : "#iDate").value || todayISO()) : {recipientName:r.name, issuedOn:todayISO()};
+  draft.id = ""; drawCert($("#issueCanvas"), certData(draft, p));
+  if (!bulk) renderIssueCredits(p, draft);
+  $("#issueCaption").textContent = bulk && S.bulkRows.length ? `Preview of the first recipient. ${S.bulkRows.filter(x=>!x.err).length} certificates will be created.` : "Live preview. The ID is assigned when you issue.";
+}
+function renderIssueCredits(p, draft){
+  if (!p){ $("#iCredits").innerHTML = ""; $("#iCounts").innerHTML = ""; return; }
+  const full = totalHours(p);
+  const A = ACT[p.activity] || ACT.course;
+  $("#iHoursHint").textContent = A.input !== "hours" ? `${A.label} is credited by ${A.input === "units" ? "credit hours" : "count"}, so attendance doesn't change it.`
+    : full ? `Program is ${fmtN(full)} contact hours. Leave blank for full attendance; partial attendance earns partial credit.` : "Add topic hours to this program to award credit.";
+  $("#iCredits").innerHTML = `<div class="row" style="gap:8px"><span class="hint">This credential will carry</span>${chips(draft.credits || {})}</div>`;
+  const key = learnerKey($("#iEmail").value, $("#iName").value);
+  const L = ($("#iEmail").value || $("#iName").value) ? learners().find(l => l.id === key) : null;
+  if (!L || !L.licenses.length){ $("#iCounts").innerHTML = L ? `<div class="counts none">${esc(L.name)} has no licenses tracked yet. Add them on the Learners tab to see what this counts toward.</div>` : ""; return; }
+  const lp = licProgsFor(L).filter(x => !x.pr.done);
+  const { hits } = contribution({ ...p, topicHours: scaleHours(p, draft.attendance || 1) }, lp);
+  $("#iCounts").innerHTML = hits.length
+    ? `<div class="counts"><strong>Counts for ${esc(L.name)}</strong><ul style="margin:6px 0 0;padding-left:18px">${hits.map(h => `<li>${esc(h.name)}: ${esc(h.parts.join(", "))}</li>`).join("")}</ul></div>`
+    : `<div class="counts none">This program doesn't close any open gaps on ${esc(L.name)}'s tracked licenses.</div>`;
+}
+function scaleHours(p, ratio){ const h = topicHours(p); return { technical:h.technical*ratio, leadership:h.leadership*ratio, business:h.business*ratio, ethics:h.ethics*ratio }; }
+["#iProgram","#iName","#iEmail","#iGrade","#iDate","#iHours","#bProgram","#bDate"].forEach(s => $(s).addEventListener("input", drawIssuePreview));
+$("#singleForm").addEventListener("submit", async e => {
+  e.preventDefault(); const p = prog($("#iProgram").value);
+  if (!p){ toast("Create a program first."); go("programs"); return; }
+  const name = $("#iName").value.trim(); if (!name) return;
+  const c = buildCred(p, {name, email:$("#iEmail").value, grade:$("#iGrade").value, hours:$("#iHours").value}, $("#iDate").value);
+  $("#iSubmit").disabled = true;
+  try { await put("credentials", c.id, c); $("#iName").value = ""; $("#iEmail").value = ""; $("#iGrade").value = ""; $("#iHours").value = "";
+    $("#iNote").innerHTML = `Issued <span class="mono">${esc(c.id)}</span> to ${esc(c.recipientName)}.`; toast("Credential issued"); drawIssuePreview(); openCred(c.id); }
+  catch(err){ fail(err); } finally { $("#iSubmit").disabled = false; }
+});
+function parseCSV(text){
+  const out = []; const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  lines.forEach((line, i) => {
+    const cells = []; let cur = "", q = false;
+    for (const ch of line){ if (ch === '"') q = !q; else if (ch === "," && !q){ cells.push(cur.trim()); cur = ""; } else cur += ch; }
+    cells.push(cur.trim());
+    if (i === 0 && /^name$/i.test(cells[0])) return;
+    const [name, email = "", grade = "", hours = ""] = cells;
+    const err = !name ? "Missing name" : (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) ? "Invalid email" : (hours && isNaN(+hours)) ? "Hours must be a number" : "";
+    out.push({name, email, grade, hours, err});
+  });
+  return out;
+}
+function renderBulk(){
+  S.bulkRows = parseCSV($("#bText").value);
+  const ok = S.bulkRows.filter(r => !r.err).length, bad = S.bulkRows.length - ok;
+  $("#bPreview").innerHTML = S.bulkRows.length ? `<div class="bulkrows">${S.bulkRows.map((r,i) => `<div class="${r.err?"err":""}"><span class="num muted">${i+1}</span><span>${esc(r.name||"—")}${r.grade?` <span class="muted">· ${esc(r.grade)}</span>`:""}${r.hours?` <span class="muted">· ${esc(r.hours)} hrs</span>`:""}</span><span>${esc(r.err || r.email || "")}</span></div>`).join("")}</div>` : "";
+  $("#bSubmit").disabled = !ok; $("#bSubmit").textContent = ok ? `Issue ${ok} credential${ok>1?"s":""}` : "Issue credentials";
+  $("#bNote").textContent = bad ? `${bad} row${bad>1?"s":""} will be skipped.` : "";
+  drawIssuePreview();
+}
+let bt; $("#bText").addEventListener("input", () => { clearTimeout(bt); bt = setTimeout(renderBulk, 250); });
+$("#bFile").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { $("#bText").value = r.result; renderBulk(); }; r.readAsText(f); });
+$("#bulkForm").addEventListener("submit", async e => {
+  e.preventDefault(); const p = prog($("#bProgram").value); if (!p){ toast("Create a program first."); return; }
+  const rows = S.bulkRows.filter(r => !r.err); const date = $("#bDate").value; let done = 0, failed = 0;
+  $("#bSubmit").disabled = true; $("#bProgress").hidden = false;
+  const taken = new Set();
+  for (const r of rows){ let c; do { c = buildCred(p, r, date); } while (taken.has(c.id)); taken.add(c.id);
+    try { await put("credentials", c.id, c); done++; } catch(err){ failed++; console.error(err); }
+    $("#bProgress i").style.width = `${Math.round((done+failed)/rows.length*100)}%`; }
+  $("#bProgress").hidden = true; $("#bProgress i").style.width = "0";
+  $("#bNote").textContent = failed ? `Issued ${done}. ${failed} could not be saved.` : `Issued ${done} credentials.`;
+  if (done){ $("#bText").value = ""; $("#bFile").value = ""; S.bulkRows = []; $("#bPreview").innerHTML = ""; toast(`Issued ${done} credentials`); }
+  $("#bSubmit").textContent = "Issue credentials"; $("#bSubmit").disabled = true;
+});
+
+/* ---------- export ---------- */
+$("#exportCsv").addEventListener("click", async () => {
+  if (!S.downloads){ toast("Downloads aren't available in this view."); return; }
+  const cols = ["id","recipientName","recipientEmail","programName","grade","issuedOn","expiresOn","status","revokedReason","contactHours","pdh","ethics","pdu","pduWW","pduPS","pduBA","ceu","sch"];
+  const qt = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
+  const val = (c, k) => k === "status" ? statusOf(c) : k in c ? c[k] : credOf(c)[k];
+  const csv = [cols.map(qt).join(",")].concat(S.creds.map(c => cols.map(k => qt(val(c, k))).join(","))).join("\n");
+  try { await S.downloads.save({filename:`credentials-${todayISO()}.csv`, data:csv}); toast("Export saved"); } catch(e){ if (e?.code !== "declined") toast("The export could not start in this view."); }
+});
+
+/* ---------- learners ---------- */
+$("#licTpl").innerHTML = Object.entries(REQS).map(([k, r]) => `<option value="${k}">${esc(r.name)}</option>`).join("");
+$("#licStart").value = addMonths(todayISO(), -6);
+function licNote(){ const r = REQS[$("#licTpl").value]; $("#licNote").textContent = r.note; $("#licCustom").hidden = !r.custom; }
+$("#licTpl").addEventListener("input", licNote); licNote();
+$("#lSearch").addEventListener("input", renderLearners);
+$("#aAct").innerHTML = Object.entries(ACT).map(([k, a]) => `<option value="${k}">${esc(a.label)}</option>`).join("");
+$("#aAct").value = "presentation"; $("#aDate").value = todayISO();
+function actPreview(){ const x = readAct("a"); syncActFields("a", x.activity); const c = computeCredits(activityProgram(x));
+  $("#aPreview").innerHTML = `<div class="row" style="gap:8px"><span class="hint">Worth</span>${chips(c)}</div><div class="hint" style="margin-top:4px">${esc([c.why.pdh, c.why.pdu].join(" "))}</div>`; }
+$("#actForm").addEventListener("input", actPreview); $("#actForm").addEventListener("change", actPreview); actPreview();
+$("#actForm").addEventListener("submit", async e => {
+  e.preventDefault(); const L = learners().find(x => x.id === S.selLearner); if (!L) return;
+  const a = buildActivity(readAct("a"));
+  if (!creditParts(a.credits).length){ toast("This activity earns no credit as entered. Check the hours or count."); return; }
+  try { await saveLearner(L, null, [...L.activities, a]); toast("Activity logged"); $("#aTitle").value = ""; $("#aEvidence").value = ""; } catch(err){ fail(err); }
+});
+function statusPill(L){
+  if (!L.licenses.length) return `<span class="pill expired" style="color:var(--muted);background:var(--sunk)">No licenses</span>`;
+  const lp = licProgsFor(L); const open = lp.filter(x => !x.pr.done).length;
+  return open ? `<span class="pill expired">${open} with gaps</span>` : `<span class="pill active">On track</span>`;
+}
+function renderLearners(){
+  const all = learners(), qv = $("#lSearch").value.trim().toLowerCase();
+  const list = all.filter(L => !qv || (L.name + " " + L.email).toLowerCase().includes(qv));
+  if (!S.selLearner || !all.some(L => L.id === S.selLearner)) S.selLearner = all[0]?.id || null;
+  $("#lList").innerHTML = list.length ? `<div class="llist">${list.map(L => `<button data-learner="${esc(L.id)}" ${L.id === S.selLearner ? 'aria-current="true"' : ""}><span><strong>${esc(L.name)}</strong>${L.sample ? '<span class="tag">Example</span>' : ""}<small>${esc(L.email || "No email")} · ${L.creds.length} credential${L.creds.length === 1 ? "" : "s"}</small></span>${statusPill(L)}</button>`).join("")}</div>`
+    : `<div class="empty">${all.length ? "No learners match." : "Learners appear here once you issue credentials."}</div>`;
+  const L = all.find(x => x.id === S.selLearner);
+  $("#lDetail").hidden = !L;
+  if (!L) return;
+  const tot = k => L.records.filter(c => c.status !== "revoked").reduce((a, c) => a + (+credOf(c)[k] || 0), 0);
+  $("#lHead").innerHTML = `<div class="head" style="margin:0"><div><h2 style="font-size:1.6rem">${esc(L.name)}</h2><div class="muted" style="font-size:.9rem">${esc(L.email || "No email on file")}</div></div><button class="btn" data-issue-to="${esc(L.id)}">Issue a credential</button></div>
+    <div class="totals" style="margin-top:14px"><div><b>${fmtN(tot("pdh"))}</b><span>PDH earned</span></div><div><b>${fmtN(tot("pdu"))}</b><span>PDU earned</span></div><div><b>${fmtN(tot("ceu"))}</b><span>CEU earned</span></div><div><b>${fmtN(tot("sch"))}</b><span>Semester credit hrs</span></div></div>`;
+  const lp = licProgsFor(L);
+  $("#lLics").innerHTML = lp.length ? lp.map(({ lic, pr }) => `<div class="lic"><div class="top"><div><strong>${esc(lic.name)}</strong><div class="hint">Cycle ${fmtDate(lic.cycleStart)} to ${fmtDate(lic.cycleEnd)} · ${pr.count} credential${pr.count === 1 ? "" : "s"} in this cycle</div></div>
+      <div class="row">${pr.done ? '<span class="pill active">Requirements met</span>' : `<span class="pill expired">${pr.items.filter(i => i.gap).length} open</span>`}<button class="btn ghost" data-rm-lic="${esc(lic.id)}" aria-label="Stop tracking ${esc(lic.name)}">Remove</button></div></div>
+      ${pr.items.map(i => { const pct = Math.min(100, i.need ? i.have / i.need * 100 : 100); return `<div class="meter ${i.sub ? "sub" : ""}"><span>${esc(i.label)}</span><span class="bar"><i class="${i.gap ? "" : "done"}" style="width:${pct}%"></i></span><span class="num">${fmtN(i.have)} / ${fmtN(i.need)}${i.gap ? ` · <strong>${fmtN(i.gap)} to go</strong>` : ""}</span></div>${i.note ? `<div class="hint" style="padding-left:14px">${esc(i.note)}</div>` : ""}`; }).join("")}</div>`).join("")
+    : `<div class="empty">No licenses tracked. Add one below to see progress and gap-closing recommendations.</div>`;
+  const open = lp.filter(x => !x.pr.done);
+  if (!lp.length) $("#lRecs").innerHTML = `<div class="empty">Track a license to get recommendations.</div>`;
+  else if (!open.length) $("#lRecs").innerHTML = `<div class="empty">All tracked requirements are met for the current cycles.</div>`;
+  else {
+    const recs = S.programs.map(p => ({ p, ...contribution(p, open), earned: L.creds.some(c => c.programId === p.id && c.status !== "revoked") }))
+      .filter(r => r.hits.length).sort((a, b) => b.hits.length - a.hits.length || b.score - a.score).slice(0, 4);
+    $("#lRecs").innerHTML = recs.length ? recs.map((r, i) => `<div class="rec"><div><strong>${esc(r.p.name)}</strong> ${i === 0 ? '<span class="tag">Best match</span>' : ""}${r.earned ? '<span class="tag" style="color:var(--muted)">Already earned</span>' : ""}
+        <div style="margin-top:4px">${chips(r.c)}</div>
+        <ul>${r.hits.map(h => `<li>${esc(h.name)}: ${esc(h.parts.join(", "))}</li>`).join("")}</ul></div>
+        <button class="btn" data-rec="${esc(r.p.id)}" data-learner-id="${esc(L.id)}">Issue</button></div>`).join("")
+      : `<div class="empty">None of your programs offer the credit types these gaps need. Consider adding PDU, PDH or CEU values in Programs.</div>`;
+  }
+  const cs = [...L.records].sort((a, b) => (b.issuedOn || "").localeCompare(a.issuedOn || ""));
+  $("#lCreds").innerHTML = cs.length ? `<div class="recent">${cs.map(c => c.self
+      ? `<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)"><span><strong>${esc(c.programName)}</strong><span class="tag" style="color:var(--muted)">Self-reported</span><span class="muted" style="display:block;font-size:.82rem">${fmtDate(c.issuedOn)} · ${esc(ACT[c.activity]?.label || "Activity")}${c.evidence ? ` · evidence: ${esc(c.evidence)}` : ""}</span><span style="display:block;margin-top:4px">${chips(credOf(c))}</span></span><button class="btn ghost" data-rm-act="${esc(c.id)}">Remove</button></div>`
+      : `<button data-cred="${esc(c.id)}"><span><strong>${esc(c.programName)}</strong><span class="muted" style="display:block;font-size:.82rem">${fmtDate(c.issuedOn)} · <span class="mono">${esc(c.id)}</span></span><span style="display:block;margin-top:4px">${chips(credOf(c))}</span></span>${pill(statusOf(c))}</button>`).join("")}</div>`
+    : `<div class="empty">No credentials or activities yet.</div>`;
+}
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-learner]"); if (b){ S.selLearner = b.dataset.learner; renderLearners(); return; }
+  const rm = e.target.closest("[data-rm-lic]");
+  if (rm){ const L = learners().find(x => x.id === S.selLearner);
+    try { await saveLearner(L, (L.licenses || []).filter(l => l.id !== rm.dataset.rmLic)); toast("License removed"); } catch(err){ fail(err); } return; }
+  const iss = e.target.closest("[data-issue-to],[data-rec]");
+  if (iss){ const L = learners().find(x => x.id === (iss.dataset.issueTo || iss.dataset.learnerId)); if (!L) return;
+    go("issue"); $$("#issueMode button")[0].click();
+    if (iss.dataset.rec) $("#iProgram").value = iss.dataset.rec;
+    $("#iName").value = L.name; $("#iEmail").value = L.email || ""; drawIssuePreview(); $("#iName").focus(); }
+});
+function makeLicense(k, start, custom = {}){
+  const t = REQS[k] || REQS.custom; let lic;
+  if (t.custom){
+    const type = ["pdh","pdu","ceu","sch"].includes(custom.type) ? custom.type : "pdh", amt = Math.max(0, +custom.amount || 0), months = Math.max(1, +custom.months || 12);
+    lic = { template:"custom", name:(custom.name || "").trim() || `Custom · ${fmtN(amt)} ${type.toUpperCase()} per ${months} months`, months, [type]:amt, ...(+custom.ethics ? { ethics:+custom.ethics } : {}) };
+  } else { lic = { template:k, name:t.name, months:t.months };
+    ["pdh","ethics","pdu","edMin","areaMin","gbMax","practMax","ceu"].forEach(f => { if (t[f]) lic[f] = t[f]; }); }
+  lic.id = "l" + Date.now().toString(36) + rand(2).toLowerCase(); lic.cycleStart = start;
+  const end = new Date(addMonths(start, lic.months) + "T12:00:00"); end.setDate(end.getDate() - 1); lic.cycleEnd = end.toISOString().slice(0, 10);
+  return lic;
+}
+async function saveLearner(L, licenses, activities){
+  const doc = { name:L.name, email:L.email || "", licenses: licenses ?? L.licenses ?? [], activities: activities ?? L.activities ?? [], ...(L.sample ? { sample:true } : {}) };
+  await put("learners", L.id, doc);
+}
+function buildActivity(x){
+  const credits = computeCredits(activityProgram(x)); delete credits.why;
+  return { id:"a" + Date.now().toString(36) + rand(3).toLowerCase(), activity:x.activity, title:(x.title || ACT[x.activity]?.label || "Activity").trim(),
+    date:x.date || todayISO(), hours:+x.hours || 0, area:x.area || "technical", count:+x.count || 0, units:+x.units || 0, unitType:x.unitType || "semester",
+    firstTime:!!x.firstTime, gbHours:+x.gbHours || 0, evidence:(x.evidence || "").trim(), credits, selfReported:true, loggedAt:Date.now() };
+}
+function readAct(prefix){
+  const v = id => $("#" + prefix + id)?.value;
+  return { activity:v("Act"), title:v("Title"), date:v("Date"), hours:v("Hours"), area:v("Area"), count:v("Count"), units:v("Units"), unitType:v("UnitType"), firstTime:$("#" + prefix + "First")?.checked, gbHours:v("Gb"), evidence:v("Evidence") };
+}
+/* show only the inputs an activity type uses */
+function syncActFields(prefix, act){
+  const A = ACT[act] || ACT.course, show = (id, on) => { const el = $("#" + prefix + id + "Wrap"); if (el) el.hidden = !on; };
+  show("Hours", A.input === "hours"); show("Count", A.input === "count"); show("Units", A.input === "units"); show("First", !!A.first);
+  show("Gb", ["publication","society","teaching","presentation"].includes(act));
+  const cl = $("#" + prefix + "CountLbl"); if (cl) cl.textContent = `Number of ${A.unit || "items"}`;
+  const gl = $("#" + prefix + "GbLbl"); if (gl) gl.textContent = act === "teaching" || act === "presentation" ? "Preparation hours (PMI Giving Back)" : "Hours spent (PMI Giving Back)";
+}
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-rm-act]"); if (!b) return;
+  const L = learners().find(x => x.id === S.selLearner); if (!L) return;
+  try { await saveLearner(L, null, L.activities.filter(a => a.id !== b.dataset.rmAct)); toast("Activity removed"); } catch(err){ fail(err); }
+});
+$("#licForm").addEventListener("submit", async e => {
+  e.preventDefault(); const L = learners().find(x => x.id === S.selLearner); if (!L) return;
+  const lic = makeLicense($("#licTpl").value, $("#licStart").value || todayISO(),
+    { type:$("#licType").value, amount:+$("#licAmt").value, months:+$("#licMonths").value, ethics:+$("#licEth").value, name:$("#licName").value });
+  try { await saveLearner(L, [...(L.licenses || []), lic]); toast("License added"); $("#licName").value = ""; } catch(err){ fail(err); }
+});
+
+/* ---------- programs ---------- */
+$("#bIcon").innerHTML = Object.entries(ICONS).map(([k, [l, d]]) => `<button type="button" data-icon="${k}" aria-pressed="false" aria-label="${l} icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>${l}</button>`).join("");
+$("#bAccent").innerHTML = TRIMS.map(c => `<button type="button" data-trim="${c}" style="background:${c}" aria-label="Trim ${c}" aria-pressed="false"></button>`).join("");
+S.draft.badge = { shape:"shield", icon:"book", accent:TRIMS[0] };
+function setBadge(patch){ Object.assign(S.draft.badge, patch);
+  $$("#bShape button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.shape === S.draft.badge.shape)));
+  $$("#bIcon button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.icon === S.draft.badge.icon)));
+  $$("#bAccent button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.trim === S.draft.badge.accent)));
+  drawProgPreview(); }
+$("#bShape").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setBadge({ shape:b.dataset.shape }); });
+$("#bIcon").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setBadge({ icon:b.dataset.icon }); });
+$("#bAccent").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setBadge({ accent:b.dataset.trim }); });
+$("#pAct").innerHTML = Object.entries(ACT).map(([k, a]) => `<option value="${k}">${esc(a.label)}</option>`).join("");
+$("#pColor").innerHTML = COLORS.map(c => `<button type="button" data-color="${c}" style="background:${c}" aria-label="Color ${c}" aria-pressed="false"></button>`).join("");
+function setStyle(s){ S.draft.style = s; $$("#pStyle button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.style === s))); drawProgPreview(); }
+function setColor(c){ S.draft.color = c; $$("#pColor button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.color === c))); drawProgPreview(); }
+$("#pStyle").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setStyle(b.dataset.style); });
+$("#pColor").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setColor(b.dataset.color); });
+function readProgForm(){
+  const n = s => Math.max(0, Number($(s).value) || 0);
+  const topic = { technical:n("#pTech"), leadership:n("#pLead"), business:n("#pBus"), ethics:n("#pEth") };
+  return { name:$("#pName").value.trim(), title:$("#pTitle").value.trim() || "Certificate of Completion", description:$("#pDesc").value.trim(),
+    skills:$("#pSkills").value.split(",").map(s => s.trim()).filter(Boolean),
+    topicHours: topic, hours: topic.technical + topic.leadership + topic.business + topic.ethics || null,
+    activity:$("#pAct").value, count:n("#pCount"), units:n("#pUnits"), unitType:$("#pUnitType").value, firstTime:$("#pFirst").checked, gbHours:n("#pGb"),
+    offers:{ pdh:$("#oPDH").checked, pdu:$("#oPDU").checked, ceu:$("#oCEU").checked, sch:$("#oSCH").checked },
+    approvals:$("#pApproval").value.trim(),
+    badge:{ shape:S.draft.badge.shape, icon:S.draft.badge.icon, accent:S.draft.badge.accent, label:$("#bLabel").value.trim().toUpperCase(), level:$("#bLevel").value.trim(), showCredit:$("#bCredit").checked },
+    validityMonths:Number($("#pValidity").value), signerName:$("#pSigner").value.trim(), signerTitle:$("#pSignerTitle").value.trim(),
+    style:S.draft.style, color:S.draft.color };
+}
+function renderXlate(p){
+  syncActFields("p", p.activity);
+  const c = computeCredits(p), A = ACT[p.activity] || ACT.course;
+  $("#pXlate").innerHTML = `<thead><tr><th>Credit</th><th>Accepted by</th><th>Value</th></tr></thead><tbody>${XLATE_RULES.map(r => {
+    const on = p.offers?.[r.key];
+    return `<tr class="${on ? "" : "off"}"><td><strong>${r.label}</strong><div class="hint">${esc(c.why[r.key])}</div></td><td>${esc(r.sys)}</td><td class="v">${on ? esc(r.val(c)) : "Not offered"}</td></tr>`; }).join("")}</tbody>
+    <tfoot><tr><td colspan="3" class="hint">${esc(A.label)}${A.input === "hours" ? ` · ${fmtN(totalHours(p))} contact hours` : ""}. Rules follow the common NCEES-style model and PMI's CCR categories; boards differ, so confirm requirements and approval status before you advertise credits.</td></tr></tfoot>`;
+}
+function drawProgPreview(){
+  const p = readProgForm(); p.name = p.name || "Program name";
+  renderXlate(p);
+  const c = buildCred({...p, id:"x"}, {name:"Amina Diallo"}, todayISO()); c.id = "";
+  drawCert($("#progCanvas"), certData(c, p));
+  $("#bLabel").placeholder = (p.name || "Badge label").toUpperCase().slice(0, 28);
+  drawBadge($("#progBadge"), { ...badgeOf(p), color:p.color, org:S.org.name, credits:computeCredits(p) });
+}
+function editProgram(id){
+  const p = prog(id); S.editing = p ? id : null;
+  $("#pfTitle").textContent = p ? "Edit program" : "New program";
+  $("#pName").value = p?.name || ""; $("#pTitle").value = p?.title || ""; $("#pDesc").value = p?.description || "";
+  $("#pSkills").value = (p?.skills || []).join(", "); $("#pValidity").value = String(p?.validityMonths || 0);
+  const th = p ? topicHours(p) : {};
+  $("#pTech").value = th.technical || ""; $("#pLead").value = th.leadership || ""; $("#pBus").value = th.business || ""; $("#pEth").value = th.ethics || "";
+  $("#pAct").value = p?.activity && ACT[p.activity] ? p.activity : "course";
+  $("#pCount").value = p?.count || 1; $("#pUnits").value = p?.units || 3; $("#pUnitType").value = p?.unitType || "semester";
+  $("#pFirst").checked = p ? !!p.firstTime : true; $("#pGb").value = p?.gbHours || "";
+  const of = p?.offers || { pdh:true, ceu:true };
+  $("#oPDH").checked = !!of.pdh; $("#oPDU").checked = !!of.pdu; $("#oCEU").checked = !!of.ceu; $("#oSCH").checked = !!of.sch;
+  $("#pApproval").value = p?.approvals || "";
+  const bd = badgeOf(p || { activity:"course" });
+  $("#bLabel").value = p?.badge?.label || ""; $("#bLevel").value = bd.level; $("#bCredit").checked = bd.showCredit;
+  S.draft.badge = { shape:bd.shape, icon:bd.icon, accent:bd.accent };
+  $$("#bShape button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.shape === bd.shape)));
+  $$("#bIcon button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.icon === bd.icon)));
+  $$("#bAccent button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.trim === bd.accent)));
+  $("#pSigner").value = p?.signerName || ""; $("#pSignerTitle").value = p?.signerTitle || "";
+  $("#pDelete").hidden = !p; $("#pConfirm").hidden = true;
+  $("#pfCount").textContent = p ? `${S.creds.filter(c => c.programId === id).length} issued` : "";
+  setStyle(p?.style || "classic"); setColor(p?.color || COLORS[S.programs.length % COLORS.length]);
+  $$("#progList .prog").forEach(b => b.toggleAttribute("aria-current", b.dataset.prog === S.editing));
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-prog]"); if (b){ go("programs"); editProgram(b.dataset.prog); } });
+$("#newProgram").addEventListener("click", () => { editProgram(null); $("#pName").focus(); });
+$("#progForm").addEventListener("input", drawProgPreview);
+$("#progForm").addEventListener("change", drawProgPreview);
+$("#progForm").addEventListener("submit", async e => {
+  e.preventDefault(); const data = readProgForm(); if (!data.name) return;
+  const id = S.editing || slugId(); const old = prog(id);
+  try { await put("programs", id, {...data, id, createdAt: old?.createdAt || Date.now(), ...(old?.sample ? {sample:true} : {})}); S.editing = id; toast("Program saved"); $("#pfTitle").textContent = "Edit program"; $("#pDelete").hidden = false; }
+  catch(err){ fail(err); }
+});
+$("#pDelete").addEventListener("click", () => $("#pConfirm").hidden = false);
+$("#pDeleteNo").addEventListener("click", () => $("#pConfirm").hidden = true);
+$("#pDeleteYes").addEventListener("click", async () => { try { await del("programs", S.editing); toast("Program deleted"); editProgram(null); } catch(err){ fail(err); } });
+
+/* ---------- verify ---------- */
+async function verify(raw){
+  const id = raw.trim().toUpperCase(); if (!id) return; $("#vId").value = id;
+  let c = S.creds.find(x => x.id === id);
+  if (!c && S.db){ try { const snap = await S.db.doc("credentials/" + id).get(); if (snap.exists) c = {...snap.data(), id}; } catch {} }
+  const el = $("#vResult");
+  if (!c){ el.innerHTML = `<div class="result bad"><div class="status"><div class="mark">${icon("x")}</div><div><strong>No credential found</strong><div class="muted" style="font-size:.9rem">Check the ID for typos. IDs look like <span class="mono">${esc((S.org.prefix||"CRT").toUpperCase())}-7KQ3-9XPM</span>.</div></div></div></div>`; return; }
+  const st = statusOf(c), cls = st === "active" ? "ok" : st === "expired" ? "warn" : "bad";
+  const head = st === "active" ? "Valid credential" : st === "expired" ? "Credential expired" : "Credential revoked";
+  const sub = st === "active" ? `Issued by ${esc(S.org.name)} and in good standing.` : st === "expired" ? `This credential was valid until ${fmtDate(c.expiresOn)}.` : `Revoked by the issuer${c.revokedReason ? `: ${esc(c.revokedReason)}` : "."}`;
+  el.innerHTML = `<div class="result ${cls}"><div class="status"><div class="mark">${icon(st==="active"?"check":st==="expired"?"clock":"x")}</div><div><strong>${head}</strong><div class="muted" style="font-size:.9rem">${sub}</div></div></div>
+    <dl><dt>Recipient</dt><dd>${esc(c.recipientName)}</dd><dt>Credential</dt><dd>${esc(c.title||"")} · ${esc(c.programName)}</dd><dt>Issuer</dt><dd>${esc(S.org.name)}</dd>
+    <dt>Credits</dt><dd>${chips(credOf(c))}${c.attendance && c.attendance < 1 ? `<div class="hint">Partial credit for ${Math.round(c.attendance*100)}% attendance</div>` : ""}</dd>
+    ${(c.approvals || prog(c.programId)?.approvals) ? `<dt>Approvals</dt><dd>${esc(c.approvals || prog(c.programId).approvals)}</dd>` : ""}
+    <dt>Awarded</dt><dd>${fmtDate(c.issuedOn)}</dd><dt>Valid until</dt><dd>${c.expiresOn?fmtDate(c.expiresOn):"Does not expire"}</dd>${c.skills?.length?`<dt>Skills</dt><dd>${esc(c.skills.join(", "))}</dd>`:""}<dt>Credential ID</dt><dd class="mono">${esc(c.id)}</dd></dl>
+    <div class="canvas" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(90px,150px);gap:16px;align-items:center"><canvas id="vCanvas" width="1600" height="1131" style="width:100%;height:auto;border-radius:4px;box-shadow:0 8px 24px -10px rgba(10,14,40,.3)"></canvas><canvas id="vBadge" width="600" height="600" style="width:100%;height:auto" aria-label="Digital badge"></canvas></div></div>`;
+  drawCert($("#vCanvas"), certData(c)); drawBadge($("#vBadge"), badgeData(c));
+}
+function icon(k){ const p = {check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>', x:'<path d="M7 7l10 10M17 7L7 17"/>', clock:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 2"/>'}[k];
+  return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`; }
+$("#verifyForm").addEventListener("submit", e => { e.preventDefault(); verify($("#vId").value); });
+
+/* ---------- settings ---------- */
+function fillOrgForm(){ const o = S.org; $("#oName").value = o.name||""; $("#oSigner").value = o.signerName||""; $("#oSignerTitle").value = o.signerTitle||"";
+  $("#oPrefix").value = o.prefix||""; $("#oSite").value = o.website||""; $("#oVerify").value = o.verifyUrl||"";
+  try { $("#oKey").value = localStorage.getItem("attest.apiKey") || ""; } catch {} }
+$("#orgForm").addEventListener("submit", async e => { e.preventDefault();
+  const o = { name:$("#oName").value.trim(), signerName:$("#oSigner").value.trim(), signerTitle:$("#oSignerTitle").value.trim(),
+    prefix:($("#oPrefix").value.trim().toUpperCase().replace(/[^A-Z0-9]/g,"") || "CRT"), website:$("#oSite").value.trim(), verifyUrl:$("#oVerify").value.trim() };
+  try { const k = $("#oKey").value.trim(); k ? localStorage.setItem("attest.apiKey", k) : localStorage.removeItem("attest.apiKey"); setAgent(k ? apiSample(k) : null); } catch {}
+  try { await saveOrg(o); toast("Settings saved"); } catch(err){ fail(err); } });
+$("#clearSamples").addEventListener("click", async () => {
+  const cs = S.creds.filter(c => c.sample), ps = S.programs.filter(p => p.sample), ls = S.learnersArr.filter(l => l.sample);
+  try { for (const c of cs) await del("credentials", c.id); for (const p of ps) await del("programs", p.id); for (const l of ls) await del("learners", l.id); toast("Example data removed"); } catch(err){ fail(err); }
+});
+
+/* ---------- agent ---------- */
+S.chat = []; S.pending = []; S.sample = null; let agentCtl = null;
+const AGENT_RULES = `You are the Attest agent inside a credential-issuing app used by a registrar. Attest issues credentials that carry continuing-education credit (PDH for engineers, PMI PDUs, CEU, academic credit) and tracks learners' license renewal cycles.
+
+How to work:
+- Use compute_credit to work out credit for any activity before you propose it. Never invent credit values.
+- Prepare changes ONLY with the propose_* tools. They queue an approval card; nothing is saved until the user approves. Say so briefly.
+- Match learners and programs by the ids in the app data. If a person is not in the data, use their name and email (if given) and say a new record will be created.
+- If something essential is missing (who, what kind of activity, rough hours or count), ask one short question instead of guessing. Assume dates like "last Friday" relative to today.
+- After proposing, reply in 2-5 short plain-text lines: what you prepared, the credit, and which license gaps it closes. No markdown tables or headings.
+- Credit rules follow the common NCEES-style model and PMI's CCR categories; boards differ. Mention that only when it matters.`;
+function agentContext(){
+  const Ls = learners().slice(0, 40).map(L => ({ id:L.id, name:L.name, email:L.email || "",
+    licenses: licProgsFor(L).map(({ lic, pr }) => ({ name:lic.name, cycle:`${lic.cycleStart} to ${lic.cycleEnd}`, open_gaps: pr.items.filter(i => i.gap).map(i => `${fmtN(i.gap)} ${i.label}`) })),
+    recent: L.records.slice(-6).map(r => `${r.issuedOn} ${r.programName}${r.self ? " (self-reported)" : ""}: ${creditLine(credOf(r)) || "no credit"}`) }));
+  const Ps = S.programs.map(p => ({ id:p.id, name:p.name, activity:p.activity || "course", credits: creditLine(computeCredits(p)) || "none" }));
+  return JSON.stringify({ today: todayISO(), organization: S.org.name, programs: Ps, learners: Ls,
+    activity_types: Object.fromEntries(Object.entries(ACT).map(([k, a]) => [k, a.label])),
+    license_templates: Object.fromEntries(Object.entries(REQS).filter(([k]) => k !== "custom").map(([k, r]) => [k, r.name])) });
+}
+const ACT_PROPS = {
+  activity:{ type:"string", enum:Object.keys(ACT), description:"Activity type key" },
+  hours:{ type:"number", description:"Contact hours (for hour-based activities: courses, conferences, meetings, self-study, teaching, presenting, mentoring)" },
+  area:{ type:"string", enum:["technical","leadership","business","ethics"], description:"Main topic of the hours" },
+  count:{ type:"number", description:"Number of publications, patents, organizations or exam questions" },
+  units:{ type:"number", description:"College credit hours earned" }, unit_type:{ type:"string", enum:["semester","quarter"] },
+  first_time:{ type:"boolean", description:"Teaching/presenting this material for the first time" },
+  giving_back_hours:{ type:"number", description:"Hours spent creating, preparing or volunteering, for PMI Giving Back" }
+};
+const actFromInput = x => ({ activity: ACT[x.activity] ? String(x.activity) : "course", hours:+x.hours || 0, area:String(x.area || "technical"), count:+x.count || 0,
+  units:+x.units || 0, unitType: x.unit_type === "quarter" ? "quarter" : "semester", firstTime: x.first_time !== false, gbHours:+x.giving_back_hours || 0 });
+function step(t){ const m = S.chat[S.chat.length - 1]; if (m && m.role === "agent"){ m.steps = [...(m.steps || []), t]; renderChat(); } }
+function queue(kind, title, lines, run){ const p = { id:"q" + Date.now().toString(36) + rand(3), kind, title, lines, run, state:"waiting" }; S.pending.unshift(p); renderPending(); return p.id; }
+function findLearner(x){
+  const all = learners(); const id = String(x.learner_id || "").toLowerCase(), em = String(x.email || "").toLowerCase(), nm = String(x.name || "").toLowerCase();
+  return all.find(L => L.id === id) || all.find(L => em && L.email.toLowerCase() === em) || all.find(L => nm && L.name.toLowerCase() === nm) || null;
+}
+const AGENT_TOOLS = [
+  { name:"compute_credit", description:"Compute the credit an activity earns under each system (PDH, PMI PDU Education/Giving Back, CEU, academic credit). Returns values and the rule applied. Use before proposing anything.",
+    inputSchema:{ type:"object", properties:ACT_PROPS, required:["activity"] },
+    execute(x){ const a = actFromInput(x); const c = computeCredits(activityProgram(a)); step(`Computed credit for ${ACT[a.activity].label.toLowerCase()}`);
+      return { credits: creditLine(c) || "no credit", detail:{ pdh:c.pdh || 0, ethics_pdh:c.ethics || 0, pdu_education:c.pduEd || 0, pdu_giving_back:c.pduGB || 0, ceu:c.ceu || 0, semester_hours:c.sch || 0 }, rules:c.why }; } },
+  { name:"propose_log_activity", description:"Queue a self-reported activity (talk, paper, patent, society service, mentoring, course taken elsewhere) on a learner's record for user approval. Returns the credit it will add.",
+    inputSchema:{ type:"object", properties:{ learner_id:{ type:"string" }, name:{ type:"string" }, email:{ type:"string" }, title:{ type:"string" }, date:{ type:"string", description:"YYYY-MM-DD" }, evidence:{ type:"string" }, ...ACT_PROPS }, required:["activity","title"] },
+    execute(x){
+      const L = findLearner(x); if (!L && !x.name) throw new Error("Unknown learner. Give learner_id from the data, or a name for a new learner.");
+      const a = { ...actFromInput(x), title:String(x.title || ""), date:/^\d{4}-\d{2}-\d{2}$/.test(String(x.date)) ? String(x.date) : todayISO(), evidence:String(x.evidence || "") };
+      const c = computeCredits(activityProgram(a)); const who = L ? L.name : String(x.name);
+      queue("Log activity", `${who}: ${a.title}`, [`${ACT[a.activity].label} · ${fmtDate(a.date)}`, `Credit: ${creditLine(c) || "none"}`, ...(L ? [] : ["Creates a new learner record"])], async () => {
+        const T = findLearner(x) || { id:learnerKey(x.email, x.name), name:String(x.name), email:String(x.email || ""), licenses:[], activities:[] };
+        await saveLearner(T, null, [...(T.activities || []), buildActivity(a)]); });
+      step(`Prepared activity for ${who}`); return { queued:true, credit: creditLine(c) || "none" }; } },
+  { name:"propose_issue_credential", description:"Queue issuing a credential from an existing program to a recipient, for user approval. Returns the credit it carries.",
+    inputSchema:{ type:"object", properties:{ program_id:{ type:"string" }, recipient_name:{ type:"string" }, recipient_email:{ type:"string" }, date:{ type:"string" }, hours_attended:{ type:"number", description:"Omit for full attendance" } }, required:["program_id","recipient_name"] },
+    execute(x){
+      const p = prog(String(x.program_id)); if (!p) throw new Error("No program with that id.");
+      const date = /^\d{4}-\d{2}-\d{2}$/.test(String(x.date)) ? String(x.date) : todayISO();
+      const r = { name:String(x.recipient_name), email:String(x.recipient_email || ""), hours: x.hours_attended ?? "" };
+      const preview = buildCred(p, r, date);
+      queue("Issue credential", `${r.name}: ${p.name}`, [`Awarded ${fmtDate(date)}${preview.attendance < 1 ? ` · partial credit (${Math.round(preview.attendance * 100)}%)` : ""}`, `Credit: ${creditLine(preview.credits) || "none"}`],
+        async () => { const c = buildCred(p, r, date); await put("credentials", c.id, c); });
+      step(`Prepared credential for ${r.name}`); return { queued:true, credit: creditLine(preview.credits) || "none" }; } },
+  { name:"propose_create_program", description:"Queue a new program (course, workshop, conference track, etc.) for user approval. Give contact hours split by topic. Returns the credit it would carry.",
+    inputSchema:{ type:"object", properties:{ name:{ type:"string" }, title:{ type:"string", description:"Certificate title, e.g. Certificate of Completion" }, description:{ type:"string", description:"Statement after the name, e.g. 'has completed the workshop'" },
+      activity:ACT_PROPS.activity, technical_hours:{ type:"number" }, leadership_hours:{ type:"number" }, business_hours:{ type:"number" }, ethics_hours:{ type:"number" },
+      offers:{ type:"array", items:{ type:"string", enum:["pdh","pdu","ceu","sch"] } }, skills:{ type:"array", items:{ type:"string" } } }, required:["name"] },
+    execute(x){
+      const off = Array.isArray(x.offers) && x.offers.length ? x.offers.map(String) : ["pdh","ceu"];
+      const p = { name:String(x.name), title:String(x.title || "Certificate of Completion"), description:String(x.description || "has successfully completed"),
+        skills:Array.isArray(x.skills) ? x.skills.map(String).slice(0, 8) : [], activity: ACT[x.activity] ? String(x.activity) : "course",
+        topicHours:{ technical:+x.technical_hours || 0, leadership:+x.leadership_hours || 0, business:+x.business_hours || 0, ethics:+x.ethics_hours || 0 },
+        offers:{ pdh:off.includes("pdh"), pdu:off.includes("pdu"), ceu:off.includes("ceu"), sch:off.includes("sch") }, approvals:"", validityMonths:0, signerName:"", signerTitle:"",
+        style:"classic", color:COLORS[S.programs.length % COLORS.length] };
+      p.hours = totalHours(p) || null; const c = computeCredits(p);
+      queue("Create program", p.name, [`${ACT[p.activity].label} · ${fmtN(totalHours(p))} contact hours`, `Credit: ${creditLine(c) || "none"}`],
+        async () => { const id = slugId(); await put("programs", id, { ...p, id, createdAt:Date.now() }); });
+      step(`Prepared program ${p.name}`); return { queued:true, credit: creditLine(c) || "none" }; } },
+  { name:"propose_track_license", description:"Queue tracking a license or certification renewal cycle on a learner's record, for user approval.",
+    inputSchema:{ type:"object", properties:{ learner_id:{ type:"string" }, name:{ type:"string" }, template:{ type:"string", enum:Object.keys(REQS) }, cycle_start:{ type:"string", description:"YYYY-MM-DD" },
+      custom_type:{ type:"string", enum:["pdh","pdu","ceu","sch"] }, custom_amount:{ type:"number" }, custom_months:{ type:"number" }, custom_name:{ type:"string" } }, required:["template","cycle_start"] },
+    execute(x){
+      const L = findLearner(x); if (!L) throw new Error("Unknown learner. Use a learner_id from the data.");
+      const start = /^\d{4}-\d{2}-\d{2}$/.test(String(x.cycle_start)) ? String(x.cycle_start) : todayISO();
+      const lic = makeLicense(String(x.template), start, { type:x.custom_type, amount:x.custom_amount, months:x.custom_months, name:x.custom_name });
+      queue("Track license", `${L.name}: ${lic.name}`, [`Cycle ${fmtDate(lic.cycleStart)} to ${fmtDate(lic.cycleEnd)}`],
+        async () => { const T = findLearner(x); await saveLearner(T, [...(T.licenses || []), { ...lic, id:"l" + Date.now().toString(36) + rand(2).toLowerCase() }]); });
+      step(`Prepared license for ${L.name}`); return { queued:true }; } }
+];
+function renderChat(){
+  const log = $("#chatLog");
+  log.innerHTML = S.chat.length ? S.chat.map(m => `<div class="msg ${m.role}">${esc(m.text || (m.role === "agent" ? "Thinking…" : ""))}${m.steps?.length ? `<div class="steps">${m.steps.map(s => `<span>✓ ${esc(s)}</span>`).join("")}</div>` : ""}</div>`).join("")
+    : `<div class="msg agent">Hi. Tell me about a learner's activity, a cohort to award, or a program you're planning. I'll work out the credit and prepare the records for your approval.</div>`;
+  log.scrollTop = log.scrollHeight;
+  $("#chatSuggest").hidden = S.chat.length > 0;
+}
+function renderPending(){
+  const waiting = S.pending.filter(p => p.state === "waiting");
+  $("#approveAll").hidden = waiting.length < 2;
+  $("#agentCount").hidden = !waiting.length; $("#agentCount").textContent = waiting.length || "";
+  renderOverview();
+  $("#pendingList").innerHTML = S.pending.length ? S.pending.map(p => `<div class="pend ${p.state !== "waiting" ? "done" : ""}"><span class="kind">${esc(p.kind)}</span><strong>${esc(p.title)}</strong><ul>${p.lines.map(l => `<li>${esc(l)}</li>`).join("")}</ul>
+      ${p.state === "waiting" ? `<div class="row"><button class="btn primary" data-approve="${p.id}">Approve</button><button class="btn ghost" data-dismiss="${p.id}">Dismiss</button></div>` : `<span class="hint">${p.state === "done" ? "Saved" : p.state === "failed" ? "Couldn't save. Try again from the relevant tab." : "Dismissed"}</span>`}</div>`).join("")
+    : `<div class="empty">Actions the agent prepares appear here.</div>`;
+}
+async function approve(id){ const p = S.pending.find(x => x.id === id); if (!p || p.state !== "waiting") return;
+  p.state = "saving"; try { await p.run(); p.state = "done"; } catch(err){ p.state = "failed"; fail(err); } renderPending(); }
+document.addEventListener("click", async e => {
+  const a = e.target.closest("[data-approve]"); if (a){ await approve(a.dataset.approve); toast("Saved"); return; }
+  const d = e.target.closest("[data-dismiss]"); if (d){ const p = S.pending.find(x => x.id === d.dataset.dismiss); if (p) p.state = "dismissed"; renderPending(); return; }
+  const s = e.target.closest("[data-ask]"); if (s){ $("#chatInput").value = s.dataset.ask; $("#chatInput").focus(); }
+});
+$("#approveAll").addEventListener("click", async () => { for (const p of S.pending.filter(x => x.state === "waiting")) await approve(p.id); toast("All approved actions saved"); });
+$("#chatInput").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); $("#chatForm").requestSubmit(); } });
+$("#chatStop").addEventListener("click", () => agentCtl?.abort());
+$("#chatForm").addEventListener("submit", async e => {
+  e.preventDefault(); const text = $("#chatInput").value.trim(); if (!text || !S.sample || agentCtl) return;
+  const history = S.chat.filter(m => m.text).slice(-8).map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.text }));
+  while (history.length && history[0].role !== "user") history.shift();
+  S.chat.push({ role:"user", text }); const reply = { role:"agent", text:"", steps:[] }; S.chat.push(reply); renderChat();
+  $("#chatInput").value = ""; $("#chatSend").disabled = true; $("#chatStop").hidden = false; $("#chatStatus").textContent = "Working… this can take up to a minute.";
+  agentCtl = new AbortController();
+  const input = [...history, { role:"user", content:`${AGENT_RULES}\n\nApp data (JSON):\n${agentContext()}\n\nUser request: ${text}` }];
+  try {
+    const res = await S.sample(input, { tools: AGENT_TOOLS, signal: agentCtl.signal, modelTier:"default", onText: ({ text: t }) => { reply.text = t; renderChat(); } });
+    reply.text = (res.text || "").trim() || "Done. Check the approval list.";
+  } catch(err){
+    reply.text = (err.text || "").trim() || ({ cancelled:"Stopped.", not_granted:"Your Claude API key was rejected. Check it in Settings.", rate_limited:"Too many requests just now. Wait a moment and try again.", tools_unavailable:"This view can't run the agent's tools." }[err.code] || "Something went wrong. Try again in a moment.");
+  } finally { agentCtl = null; $("#chatSend").disabled = false; $("#chatStop").hidden = true; $("#chatStatus").textContent = ""; renderChat(); }
+});
+renderChat(); renderPending();
+
+/* ---------- demo data (only when no shared store is available) ---------- */
+function loadDemo(){
+  const p1 = {id:"p-demo1", name:"Applied Machine Learning", title:"Professional Certificate", description:"has successfully completed all coursework and the capstone project of", skills:["Python","Model evaluation","MLOps"], topicHours:{technical:10,leadership:0,business:1,ethics:1}, offers:{pdh:true,ceu:true}, validityMonths:36, signerName:"", signerTitle:"Program Director", style:"classic", color:COLORS[0], sample:true};
+  const p2 = {id:"p-demo2", name:"Engineering Leadership Cohort", title:"Certificate of Completion", description:"has completed the cohort program and leadership practicum of", skills:["Negotiation","Team leadership"], topicHours:{technical:0,leadership:14,business:4,ethics:2}, offers:{pdh:true,pdu:true,ceu:true}, validityMonths:0, signerName:"", signerTitle:"Cohort Lead", style:"modern", color:COLORS[1], sample:true};
+  const p3 = {id:"p-demo3", name:"Agile Delivery for Technical Teams", title:"Certificate of Completion", description:"has completed the workshop", skills:["Scrum","Kanban"], topicHours:{technical:8,leadership:3,business:3,ethics:0}, offers:{pdh:true,pdu:true}, validityMonths:0, signerName:"", signerTitle:"Lead Instructor", style:"minimal", color:COLORS[4], sample:true};
+  S.programs = [p1,p2,p3]; S.org = {...S.org, name:"Example Institute", signerName:"Dr. Sample Signer", signerTitle:"Executive Director", prefix:"EXI"};
+  const mk = (p, name, email, d, extra={}) => ({...buildCred(p,{name,email},d), sample:true, ...extra});
+  S.creds = [ mk(p1,"Amina Diallo","amina@example.org","2026-09-30"), mk(p2,"Lucas Ferreira","lucas@example.org","2026-09-12"),
+    mk(p1,"Priya Raman","priya@example.org","2023-10-02"), mk(p2,"Jonas Weber","jonas@example.org","2026-08-20",{status:"revoked",revokedReason:"Issued in error"}) ];
+  S.creds.forEach((c,i) => c.issuedAt = Date.now() - i*86400000);
+  S.learnersArr = [
+    { id:"amina@example.org", name:"Amina Diallo", email:"amina@example.org", sample:true, licenses:[
+      { id:"l1", template:"ncees", name:REQS.ncees.name, months:12, pdh:15, ethics:1, cycleStart:"2026-01-01", cycleEnd:"2026-12-31" },
+      { id:"l2", template:"pmp", name:REQS.pmp.name, months:36, pdu:60, areaMin:8, cycleStart:"2024-03-01", cycleEnd:"2027-02-28" } ] },
+    { id:"lucas@example.org", name:"Lucas Ferreira", email:"lucas@example.org", sample:true, licenses:[
+      { id:"l3", template:"ceu2", name:REQS.ceu2.name, months:24, ceu:2, cycleStart:"2025-06-01", cycleEnd:"2027-05-31" } ] } ];
+}
+
+/* ---------- standalone helpers (outside Claude) ---------- */
+function setAgent(fn){ S.sample = fn; $("#chatForm").hidden = !fn; $("#chatSuggest").hidden = !fn || S.chat.length > 0; $("#agentOff").hidden = !!fn; }
+function browserDownloads(){
+  return { async save({ filename, data }){ const blob = data instanceof Blob ? data : new Blob([data], { type: /\.json$/.test(filename) ? "application/json" : /\.csv$/.test(filename) ? "text/csv" : "application/octet-stream" });
+    const url = URL.createObjectURL(blob), a = document.createElement("a"); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); return { status:"saved" }; } };
+}
+/* Claude Messages API with tool use, called from the browser with the user's own key */
+const AGENT_MODEL = "claude-sonnet-5-5";
+function apiSample(key){
+  return async (input, opts = {}) => {
+    const messages = (typeof input === "string" ? [{ role:"user", content:input }] : input).map(m => ({ role:m.role, content:m.content }));
+    const tools = (opts.tools || []).map(t => ({ name:t.name, description:t.description, input_schema:t.inputSchema || { type:"object", properties:{} } }));
+    let all = "";
+    for (let round = 0; round < 8; round++){
+      let res;
+      try { res = await fetch("https://api.anthropic.com/v1/messages", { method:"POST", signal:opts.signal,
+        headers:{ "content-type":"application/json", "x-api-key":key, "anthropic-version":"2023-06-01", "anthropic-dangerous-direct-browser-access":"true" },
+        body: JSON.stringify({ model:AGENT_MODEL, max_tokens:1600, messages, ...(tools.length ? { tools } : {}) }) }); }
+      catch(e){ throw { code: e && e.name === "AbortError" ? "cancelled" : "unavailable", message:String(e), text:all }; }
+      if (!res.ok){ const body = await res.text().catch(() => ""); throw { code: res.status === 401 || res.status === 403 ? "not_granted" : res.status === 429 ? "rate_limited" : "unavailable", message:body, text:all }; }
+      const j = await res.json(), blocks = j.content || [];
+      const said = blocks.filter(b => b.type === "text").map(b => b.text).join("");
+      if (said){ all += (all ? "\n\n" : "") + said; opts.onText && opts.onText({ text:all, delta:said }); }
+      const uses = blocks.filter(b => b.type === "tool_use");
+      if (j.stop_reason !== "tool_use" || !uses.length) return { text:all, truncated: j.stop_reason === "max_tokens" };
+      messages.push({ role:"assistant", content:blocks });
+      const results = [];
+      for (const u of uses){ const t = (opts.tools || []).find(x => x.name === u.name); let out, bad = false;
+        try { out = t ? await t.execute(u.input || {}, { signal:opts.signal }) : "Error: unknown tool"; } catch(e){ out = "Error: " + (e && e.message || e); bad = true; }
+        results.push({ type:"tool_result", tool_use_id:u.id, content: typeof out === "string" ? out : JSON.stringify(out), ...(bad ? { is_error:true } : {}) }); }
+      messages.push({ role:"user", content:results });
+    }
+    return { text:all, truncated:true };
+  };
+}
+
+/* ---------- boot ---------- */
+function setBanner(t){ const b = $("#banner"); b.textContent = t; b.hidden = !t; }
+async function boot(){
+  try { const t = localStorage.getItem("attest.tab"); if (t && $(`[data-view="${t}"]`)) go(t); } catch {}
+  editProgram(null);
+  const hashId = (location.hash || "").slice(1);
+  const C = window.claude;
+  const [db, user, downloads, sample] = C ? await Promise.all([C.use("db"), C.use("user"), C.use("downloads"), C.use("sample")]) : [null, null, null, null];
+  S.downloads = downloads || (C ? null : browserDownloads());
+  let key = null; try { key = localStorage.getItem("attest.apiKey"); } catch {}
+  setAgent(sample || (key ? apiSample(key) : null));
+  if (!db){
+    if (window.AttestStore){
+      S.standalone = true;
+      const saved = AttestStore.load(), base = saved || AttestStore.demo(), acct = AttestStore.account();
+      S.org = { ...S.org, ...base.org }; S.programs = base.programs; S.creds = base.creds; S.learnersArr = base.learnersArr || [];
+      if (!saved && acct && acct.role !== "learner"){ S.org.name = acct.org || S.org.name; S.org.signerName = acct.name || S.org.signerName; }
+      if (!S.org.verifyUrl){ try { S.org.verifyUrl = new URL("../verify.html", location.href).href; } catch {} }
+      persist();
+      setBanner(acct ? `Signed in as ${acct.name} · Preview: your data is saved in this browser until Attest's servers launch.` : "Preview: your data is saved in this browser until Attest's servers launch.");
+    } else { S.demo = true; loadDemo(); setBanner("Demo mode: changes last only until you reload."); }
+    renderAll(); }
+  else {
+    S.db = db;
+    if (user){ try { const ce = await user.canEdit(); S.canEdit = ce !== false; } catch {} }
+    let first = 2; const ready = () => { if (--first === 0 && hashId) { go("verify"); verify(hashId); } };
+    db.doc("org/settings").onSnapshot(s => { if (s.exists) S.org = {...S.org, ...s.data()}; renderAll(); if (!$('[data-view="settings"]').hidden) fillOrgForm(); }, () => {});
+    db.collection("learners").onSnapshot(s => { S.learnersArr = s.docs.map(d => ({...d.data(), id:d.id})); renderAll(); }, () => {});
+    db.collection("programs").onSnapshot(s => { S.programs = s.docs.map(d => ({...d.data(), id:d.id})).sort((a,b) => (a.createdAt||0)-(b.createdAt||0)); renderAll(); }, () => {});
+    let once = false;
+    db.collection("credentials").onSnapshot(s => { S.creds = s.docs.map(d => ({...d.data(), id:d.id})); renderAll(); if (!once){ once = true; ready(); ready(); } },
+      () => setBanner("The credential registry couldn't load. Reload the page to try again."));
+  }
+  if (!S.canEdit){
+    $$("#tabs button").forEach(b => b.hidden = b.dataset.tab !== "verify"); $$("#tabs .navlabel").forEach(l => l.hidden = true);
+    $("#topActions").hidden = true; go("verify");
+    setBanner("You're viewing the public verification page.");
+  }
+  if (hashId && !S.db){ go("verify"); verify(hashId); }
+  renderAll();
+}
+renderAll(); drawIssuePreview(); drawProgPreview();
+(document.fonts?.ready || Promise.resolve()).then(() => { drawIssuePreview(); drawProgPreview(); renderAll(); if (S.viewing) openCred(S.viewing, true); });
+boot();
+})();
+</script>
+</body>
+</html>

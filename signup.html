@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sign up or log in · Attest</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500&family=Geist:wght@400..700&family=Geist+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+.auth{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);min-height:100vh}
+.panel-dark{background:var(--night);color:var(--night-ink);padding:48px max(48px,env(safe-area-inset-left));display:flex;flex-direction:column;justify-content:space-between;gap:48px}
+.panel-dark .brand{color:var(--night-ink)}
+.panel-dark h1{font-size:clamp(2.2rem,4vw,3.2rem)}
+.panel-dark h1 em{font-family:var(--f-display);font-weight:500;color:var(--gold)}
+.panel-dark ul{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:12px;color:var(--night-muted)}
+.panel-dark li{display:flex;gap:10px}
+.panel-dark li::before{content:"✓";color:var(--gold);font-weight:700}
+.tally{font-family:var(--f-mono);font-size:.78rem;color:var(--night-muted);letter-spacing:.06em}
+.formside{display:flex;align-items:center;justify-content:center;padding:48px max(24px,env(safe-area-inset-right)) 48px 24px}
+.box{width:100%;max-width:440px;display:grid;gap:22px}
+.tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));background:var(--sunk);border:1px solid var(--line);border-radius:12px;padding:4px}
+.tabs button{min-height:42px;border:0;border-radius:9px;background:transparent;font:inherit;font-weight:550;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-sm)}
+form{display:grid;gap:14px}
+label{display:grid;gap:6px;font-size:.88rem;font-weight:550;color:var(--ink2)}
+input[type=text],input[type=email],input[type=password]{min-height:46px;padding:0 14px;border:1px solid var(--line2);border-radius:11px;background:var(--surface);color:var(--ink);font:inherit}
+input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.roles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.roles button{display:grid;gap:3px;text-align:left;padding:12px;border:1px solid var(--line2);border-radius:12px;background:var(--surface);font:inherit;color:var(--ink);cursor:pointer;min-height:44px}
+.roles button span{font-size:.78rem;color:var(--muted);line-height:1.35}
+.roles button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.err{color:var(--bad);font-size:.88rem;min-height:1.2em;margin:0}
+.note{font-size:.8rem;color:var(--muted);margin:0}
+@media (max-width:860px){.auth{grid-template-columns:minmax(0,1fr)}.panel-dark{padding:32px 24px;gap:28px}.roles{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<div class="auth">
+  <aside class="panel-dark">
+    <a class="brand" href="./" aria-label="Attest home">
+      <svg width="30" height="30" viewBox="0 0 34 34" aria-hidden="true"><g fill="none" stroke="#D6B063" stroke-width="1.3"><circle cx="17" cy="17" r="15"/><circle cx="17" cy="17" r="11" stroke-dasharray="1.5 2"/></g><path d="M11.5 17.5l3.5 3.5 7.5-8" fill="none" stroke="#909CFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Attest</span>
+    </a>
+    <div>
+      <h1>Learn once. <em>Count it everywhere.</em></h1>
+      <ul><li>Credentials that carry PDH, PDU, CEU and credit hours</li><li>One record that travels to schools and licensing boards</li><li>Free to start, no credit card needed</li></ul>
+    </div>
+    <div class="tally">24 PDH · 18 PDU · 2.4 CEU · ALL VERIFIED</div>
+  </aside>
+
+  <main class="formside">
+    <div class="box">
+      <div class="tabs" role="tablist" aria-label="Account">
+        <button type="button" role="tab" id="tSign" aria-selected="true">Sign up free</button>
+        <button type="button" role="tab" id="tLog" aria-selected="false">Log in</button>
+      </div>
+
+      <form id="signForm" autocomplete="on" novalidate>
+        <div><h2 style="font-size:1.9rem">Create your free account</h2><p class="muted" style="margin:6px 0 0">Free for learners, and free to start issuing.</p></div>
+        <fieldset style="border:0;margin:0;padding:0;display:grid;gap:8px">
+          <legend style="font-size:.88rem;font-weight:550;color:var(--ink2);padding:0;margin-bottom:8px">I'm joining as</legend>
+          <div class="roles" id="roles">
+            <button type="button" data-role="issuer" aria-pressed="true"><strong>Issuer</strong><span>I run courses or programs</span></button>
+            <button type="button" data-role="learner" aria-pressed="false"><strong>Learner</strong><span>I earn and track credits</span></button>
+            <button type="button" data-role="receiver" aria-pressed="false"><strong>School or board</strong><span>I review and accept credit</span></button>
+          </div>
+        </fieldset>
+        <label>Your name<input id="sName" type="text" autocomplete="name" required></label>
+        <label><span id="orgLbl">Organization</span><input id="sOrg" type="text" autocomplete="organization" placeholder="Training provider, society or university"></label>
+        <label>Work email<input id="sEmail" type="email" autocomplete="email" required></label>
+        <label>Password<input id="sPass" type="password" autocomplete="new-password" minlength="8" required><span class="note">At least 8 characters.</span></label>
+        <p class="err" id="sErr" role="alert"></p>
+        <button class="btn primary lg" type="submit">Create free account</button>
+        <p class="note">Preview: your account is kept in this browser until Attest's servers launch.</p>
+      </form>
+
+      <form id="logForm" autocomplete="on" novalidate hidden>
+        <div><h2 style="font-size:1.9rem">Welcome back</h2><p class="muted" style="margin:6px 0 0">Log in to manage your programs and credentials.</p></div>
+        <label>Email<input id="lEmail" type="email" autocomplete="email" required></label>
+        <label>Password<input id="lPass" type="password" autocomplete="current-password" required></label>
+        <p class="err" id="lErr" role="alert"></p>
+        <button class="btn primary lg" type="submit">Log in</button>
+        <p class="note">New to Attest? <a href="#" id="toSign">Create a free account</a></p>
+      </form>
+    </div>
+  </main>
+</div>
+<script>
+(function(){
+  var $ = function(s){ return document.querySelector(s); };
+  var role = new URLSearchParams(location.search).get("role") || "issuer";
+  var LABELS = { issuer:["Organization","Training provider, society or university"], learner:["School or employer (optional)","Where you study or work"], receiver:["Institution","School, licensing board or certifying body"] };
+  function setRole(r){ role = LABELS[r] ? r : "issuer";
+    document.querySelectorAll("#roles button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.role === role)); });
+    $("#orgLbl").textContent = LABELS[role][0]; $("#sOrg").placeholder = LABELS[role][1]; }
+  function mode(m){ var sign = m !== "login";
+    $("#tSign").setAttribute("aria-selected", String(sign)); $("#tLog").setAttribute("aria-selected", String(!sign));
+    $("#signForm").hidden = !sign; $("#logForm").hidden = sign; }
+  $("#roles").addEventListener("click", function(e){ var b = e.target.closest("button"); if (b) setRole(b.dataset.role); });
+  $("#tSign").addEventListener("click", function(){ mode("signup"); });
+  $("#tLog").addEventListener("click", function(){ mode("login"); });
+  $("#toSign").addEventListener("click", function(e){ e.preventDefault(); mode("signup"); });
+  setRole(role); mode(location.hash === "#login" ? "login" : "signup");
+
+  async function hash(s){ try { var d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)); return Array.from(new Uint8Array(d)).map(function(x){ return x.toString(16).padStart(2,"0"); }).join(""); } catch(e){ return s.length + ":" + s.charCodeAt(0); } }
+  var okEmail = function(e){ return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e); };
+
+  $("#signForm").addEventListener("submit", async function(e){
+    e.preventDefault(); var name = $("#sName").value.trim(), email = $("#sEmail").value.trim().toLowerCase(), pass = $("#sPass").value, org = $("#sOrg").value.trim();
+    if (!name) return $("#sErr").textContent = "Enter your name.";
+    if (!okEmail(email)) return $("#sErr").textContent = "Enter a valid email address.";
+    if (pass.length < 8) return $("#sErr").textContent = "Use a password of at least 8 characters.";
+    if (role !== "learner" && !org) return $("#sErr").textContent = "Enter your organization's name.";
+    var acct = { name: name, email: email, org: org, role: role, pw: await hash(email + ":" + pass), createdAt: Date.now() };
+    try { localStorage.setItem("attest.account", JSON.stringify(acct)); localStorage.setItem("attest.session", "1"); } catch(err){ return $("#sErr").textContent = "This browser is blocking storage. Allow site data and try again."; }
+    location.href = "app/?welcome=1";
+  });
+  $("#logForm").addEventListener("submit", async function(e){
+    e.preventDefault(); var email = $("#lEmail").value.trim().toLowerCase(), pass = $("#lPass").value, acct = null;
+    try { acct = JSON.parse(localStorage.getItem("attest.account") || "null"); } catch(err){}
+    if (!acct || acct.email !== email) return $("#lErr").textContent = "No account with that email in this browser. Sign up first.";
+    if (acct.pw !== await hash(email + ":" + pass)) return $("#lErr").textContent = "That password doesn't match. Try again.";
+    try { localStorage.setItem("attest.session", "1"); } catch(err){}
+    location.href = "app/";
+  });
+})();
+</script>
+</body>
+</html>
