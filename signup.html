@@ -116,7 +116,7 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--a
     if (role !== "learner" && !org) return $("#sErr").textContent = "Enter your organization's name.";
     var acct = { name: name, email: email, org: org, role: role, pw: await hash(email + ":" + pass), createdAt: Date.now() };
     try { localStorage.setItem("attest.account", JSON.stringify(acct)); localStorage.setItem("attest.session", "1"); } catch(err){ return $("#sErr").textContent = "This browser is blocking storage. Allow site data and try again."; }
-    location.href = "app/?welcome=1";
+    location.href = role === "learner" ? "learner/" : "app/?welcome=1";
   });
   $("#logForm").addEventListener("submit", async function(e){
     e.preventDefault(); var email = $("#lEmail").value.trim().toLowerCase(), pass = $("#lPass").value, acct = null;
@@ -124,7 +124,7 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--a
     if (!acct || acct.email !== email) return $("#lErr").textContent = "No account with that email in this browser. Sign up first.";
     if (acct.pw !== await hash(email + ":" + pass)) return $("#lErr").textContent = "That password doesn't match. Try again.";
     try { localStorage.setItem("attest.session", "1"); } catch(err){}
-    location.href = "app/";
+    location.href = acct.role === "learner" ? "learner/" : "app/";
   });
 })();
 </script>

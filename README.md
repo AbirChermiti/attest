@@ -8,7 +8,9 @@ This repository is the public preview site, built as plain static files so it ru
 | --- | --- |
 | `index.html` | Landing page: how it works, issuers/learners/receivers, features, pricing |
 | `signup.html` | Sign up (issuer, learner or school/board) and log in |
-| `app/` | The Attest app: programs, credit translator, issuing (single and CSV), certificates, badges, LinkedIn sharing, learner records, license tracking, the AI agent |
+| `app/` | Issuer app: programs, credit translator, issuing (single and CSV), certificates, badges, LinkedIn sharing, learner records, license tracking, the AI agent |
+| `learner/` | Learner record: claim issued credentials, add outside certificates and credits, Attest verification checks, points and micro-credentials, career advice and courses (PMI, LinkedIn Learning, Coursera), AI career coach |
+| `review.html` | Internal Attest verification queue: approve or reject submissions the automatic checks couldn't confirm |
 | `verify.html` | Public verification by credential ID (`verify.html#CRT-XXXX-XXXX`) |
 | `assets/` | Shared styles, icon and the browser data store |
 
@@ -18,7 +20,8 @@ This is a front-end preview; the backend in the technical design is not built ye
 
 - **Accounts and data live in the visitor's browser** (localStorage). Nothing is shared between devices, and clearing site data removes it.
 - **Verification** finds the example credentials and anything issued from the same browser. Public cross-device verification needs the backend.
-- **The agent** works only after you paste your own Claude API key in **Settings**. The key stays in your browser and requests go directly to Anthropic, billed to that key. Don't use a shared or production key on a public computer.
+- **Learner verification** runs Attest's automatic checks in the browser (issuer, link on the issuer's own site, dates, credit, duplicates). With the backend, links are fetched and confirmed with the issuer.
+- **The agent** and the **career coach** work only after you paste your own Claude API key in **Settings**. The key stays in your browser and requests go directly to Anthropic, billed to that key. Don't use a shared or production key on a public computer.
 - Credit rules follow the common NCEES-style PDH model and PMI's CCR categories. Boards differ; confirm before advertising credits.
 
 ## Deploy on GitHub Pages

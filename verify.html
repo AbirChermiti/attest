@@ -46,13 +46,14 @@ dd{margin:0}
   <p class="muted" style="margin:10px 0 0">Enter the credential ID printed at the bottom of the certificate or badge.</p>
   <form class="vform" id="vf">
     <label for="vid" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Credential ID</label>
-    <input id="vid" type="text" placeholder="CRT-XXXX-XXXX" autocomplete="off" spellcheck="false">
+    <input id="vid" type="text" placeholder="CRT-XXXX-XXXX or ATT-XXXX-XXXX" autocomplete="off" spellcheck="false">
     <button class="btn primary lg" type="submit">Verify</button>
   </form>
   <div id="out" aria-live="polite"></div>
   <p class="hint">Try an example: <a href="#CRT-7KQ3-9XPM" data-try="CRT-7KQ3-9XPM">CRT-7KQ3-9XPM</a> (valid), <a href="#CRT-PX8N-4CEB" data-try="CRT-PX8N-4CEB">CRT-PX8N-4CEB</a> (expired), <a href="#CRT-J9VA-6QLS" data-try="CRT-J9VA-6QLS">CRT-J9VA-6QLS</a> (revoked).<br>Preview: lookups cover the examples and credentials issued from this browser until Attest's servers launch.</p>
 </main>
 <script src="assets/store.js"></script>
+<script src="assets/learner.js"></script>
 <script>
 (function(){
   var $ = function(s){ return document.querySelector(s); };
@@ -71,6 +72,10 @@ dd{margin:0}
   function verify(raw){
     var id = String(raw || "").trim().toUpperCase(); if (!id) return; $("#vid").value = id;
     var D = data(), c = D.creds.find(function(x){ return x.id === id; }), out = $("#out");
+    var LR = window.AttestLearner && AttestLearner.load(), m = LR && LR.micro.filter(function(x){ return x.id === id; })[0];
+    if (m){ out.innerHTML = '<div class="result ok"><div class="status"><div class="mark">' + ico("check") + '</div><div><strong>Valid micro-credential</strong><div class="muted" style="font-size:.92rem">Issued by Attest from verified credit.</div></div></div>'
+      + '<dl><dt>Holder</dt><dd>' + esc(m.holder) + '</dd><dt>Micro-credential</dt><dd>' + esc(m.name) + '</dd><dt>Criteria</dt><dd>' + esc(m.criteria) + '</dd><dt>Evidence</dt><dd>' + m.evidence.length + ' verified items</dd><dt>Earned</dt><dd>' + fmt(m.earnedOn) + '</dd><dt>ID</dt><dd class="mono">' + esc(m.id) + '</dd></dl></div>';
+      try { history.replaceState(null, "", "#" + id); } catch(e){} return; }
     if (!c){ out.innerHTML = '<div class="result bad"><div class="status"><div class="mark">' + ico("x") + '</div><div><strong>No credential found</strong><div class="muted" style="font-size:.92rem">Check the ID for typos. IDs look like <span class="mono">CRT-7KQ3-9XPM</span>.</div></div></div></div>'; return; }
     var st = c.status === "revoked" ? "revoked" : (c.expiresOn && c.expiresOn < today ? "expired" : "active");
     var cls = st === "active" ? "ok" : st === "expired" ? "warn" : "bad";

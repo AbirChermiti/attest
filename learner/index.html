@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>My Attest record</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500&family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap">
+<style>
+/* Layout: learner wallet — same shell as the issuer app; record first, then claim, verify, micro-credentials and career */
+:root{
+  --paper:#F6F7FB; --surface:#FFFFFF; --sunk:#EFF1F7; --ink:#12162B; --ink2:#3B4260; --muted:#636A89; --line:#E3E6EF; --line2:#D2D7E5;
+  --accent:#3443C4; --accent-soft:#ECEEFD; --accent-ink:#FFFFFF; --brass:#9A7428; --brass-soft:#F7EFDD; --gold:#C99A3A;
+  --ok:#1C7A4E; --ok-bg:#E2F4EA; --warn:#94600C; --warn-bg:#FBF0DA; --bad:#B42E3C; --bad-bg:#FBE5E8;
+  --shadow-sm:0 1px 2px rgba(16,20,45,.05); --shadow-md:0 8px 20px -6px rgba(16,20,45,.12); --shadow-lg:0 30px 60px -16px rgba(16,20,45,.35);
+  --r:14px; --ease:cubic-bezier(.2,.7,.2,1);
+  --f-display:"Bodoni Moda",Didot,Georgia,serif; --f-body:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif; --f-mono:"Geist Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0B0E1A; --surface:#13172A; --sunk:#1A1F36; --ink:#ECEEF8; --ink2:#C3C8DE; --muted:#959BB9; --line:#232944; --line2:#2F3658;
+  --accent:#909CFF; --accent-soft:#1D2347; --accent-ink:#0B0E1A; --brass:#D8B266; --brass-soft:#2C2616; --gold:#D8B266;
+  --ok:#57CB95; --ok-bg:#132E25; --warn:#E6AA4D; --warn-bg:#33281A; --bad:#F27C88; --bad-bg:#381B22;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3); --shadow-md:0 10px 24px -8px rgba(0,0,0,.5); --shadow-lg:0 30px 60px -16px rgba(0,0,0,.7); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0B0E1A; --surface:#13172A; --sunk:#1A1F36; --ink:#ECEEF8; --ink2:#C3C8DE; --muted:#959BB9; --line:#232944; --line2:#2F3658;
+  --accent:#909CFF; --accent-soft:#1D2347; --accent-ink:#0B0E1A; --brass:#D8B266; --brass-soft:#2C2616; --gold:#D8B266;
+  --ok:#57CB95; --ok-bg:#132E25; --warn:#E6AA4D; --warn-bg:#33281A; --bad:#F27C88; --bad-bg:#381B22;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3); --shadow-md:0 10px 24px -8px rgba(0,0,0,.5); --shadow-lg:0 30px 60px -16px rgba(0,0,0,.7); color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;min-height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:14.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.022em;text-wrap:balance}
+h2{font-size:1.6rem} h3{font-size:1.02rem}
+a{color:var(--accent)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.eyebrow{font-size:.7rem;text-transform:uppercase;letter-spacing:.11em;color:var(--muted);font-weight:600}
+.muted{color:var(--muted)} .hint{font-size:.78rem;color:var(--muted);line-height:1.45}
+.mono{font-family:var(--f-mono);font-size:.86em}
+
+/* shell */
+.side{position:fixed;inset:0 auto 0 0;width:240px;z-index:40;display:flex;flex-direction:column;gap:22px;background:var(--surface);border-right:1px solid var(--line);padding:calc(20px + env(safe-area-inset-top)) 14px calc(16px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));transition:transform .3s var(--ease);overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:0 8px;text-decoration:none;color:var(--ink)}
+.brand span{font-family:var(--f-display);font-style:italic;font-size:1.65rem}
+nav.tabs{display:flex;flex-direction:column;gap:2px;flex:1}
+nav.tabs button{display:flex;align-items:center;gap:11px;width:100%;padding:9px 12px;border:0;border-radius:10px;background:none;color:var(--ink2);cursor:pointer;font-weight:500;font-size:.92rem;text-align:left;transition:background .15s}
+nav.tabs button svg{width:18px;height:18px;flex:none}
+nav.tabs button:hover{background:var(--sunk)}
+nav.tabs button[aria-selected="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.navcount{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--gold);color:#1A1405;font-size:.7rem;font-weight:700;display:grid;place-items:center;font-style:normal}
+.me{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+.avatar{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink);font-weight:700;flex:none}
+.me strong{display:block;font-size:.86rem;line-height:1.25}
+.me small{display:block;font-size:.74rem;color:var(--muted)}
+.me a{color:var(--muted)}
+.scrim{position:fixed;inset:0;background:rgba(8,10,24,.45);z-index:39}
+.main{margin-left:240px;min-width:0}
+.topbar{position:sticky;top:env(safe-area-inset-top);z-index:30;background:color-mix(in srgb,var(--paper) 80%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding-block:12px;padding-left:max(28px,env(safe-area-inset-left));padding-right:max(28px,env(safe-area-inset-right))}
+.crumbs{flex:1;min-width:0;color:var(--muted);font-size:.88rem}
+.crumbs strong{color:var(--ink)}
+.iconbtn{display:none;width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--surface);cursor:pointer;place-items:center}
+.wrap{max-width:1180px;margin:0 auto;padding-block:8px 72px;padding-left:max(28px,env(safe-area-inset-left));padding-right:max(28px,env(safe-area-inset-right))}
+.banner{margin-top:18px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;font-size:.86rem;color:var(--ink2);background:var(--accent-soft);display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+section.view{padding-top:28px;animation:viewIn .32s var(--ease)}
+@keyframes viewIn{from{opacity:.001;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}
+.head{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:14px;margin-bottom:22px}
+.head p{margin:6px 0 0;max-width:64ch}
+
+/* controls */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:8px 14px;border-radius:10px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);cursor:pointer;font-weight:550;font-size:.88rem;white-space:nowrap;text-decoration:none;box-shadow:var(--shadow-sm);transition:background .15s,border-color .15s,transform .1s,filter .15s}
+.btn:hover{border-color:var(--muted)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.gold{background:var(--gold);color:#1A1405;border-color:transparent}
+.btn.ghost{background:none;border-color:transparent;color:var(--muted);box-shadow:none}
+.btn.li{background:#0A66C2;border-color:#0A66C2;color:#FFFFFF}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+label{display:grid;gap:6px;font-size:.82rem;font-weight:550;color:var(--ink2)}
+input[type=text],input[type=email],input[type=date],input[type=number],input[type=url],input[type=password],select,textarea{width:100%;min-height:40px;padding:9px 12px;border:1px solid var(--line2);border-radius:10px;background:var(--surface);color:var(--ink);font-size:.92rem;min-width:0}
+input[type=file]{font-size:.85rem}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.form{display:grid;gap:16px;align-content:start}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow-sm)}
+.cols{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:24px;align-items:start}
+.empty{padding:28px 22px;text-align:center;color:var(--muted);border:1.5px dashed var(--line2);border-radius:var(--r);font-size:.9rem}
+
+/* chips and pills */
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-family:var(--f-mono);font-size:.7rem;font-weight:550;padding:2px 8px;border-radius:6px;white-space:nowrap;background:var(--sunk);color:var(--ink2)}
+.chip.pdh{color:var(--accent);background:var(--accent-soft)} .chip.pdu{color:var(--ok);background:var(--ok-bg)} .chip.ceu{color:var(--brass);background:var(--brass-soft)} .chip.sch{color:var(--bad);background:var(--bad-bg)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.verified{color:var(--ok);background:var(--ok-bg)} .pill.review{color:var(--accent);background:var(--accent-soft)} .pill.info{color:var(--warn);background:var(--warn-bg)} .pill.rejected{color:var(--bad);background:var(--bad-bg)} .pill.claim{color:#7A5A1C;background:var(--brass-soft)}
+
+/* home */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:center;padding:26px;border:1px solid var(--line);border-radius:18px;background:radial-gradient(800px 240px at 0% 0%,var(--accent-soft),transparent 70%),var(--surface);box-shadow:var(--shadow-sm)}
+.hero h2{font-size:1.9rem}
+.ring{position:relative;width:132px;height:132px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .val{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring .val b{font-size:1.7rem;font-weight:650;letter-spacing:-.03em;line-height:1}
+.ring .val small{font-size:.7rem;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.totals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;margin-top:16px;box-shadow:var(--shadow-sm)}
+.totals div{padding:14px 18px} .totals div+div{border-left:1px solid var(--line)}
+.totals b{display:block;font-size:1.6rem;font-weight:650;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.totals span{font-size:.76rem;color:var(--muted)}
+.claimbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;margin-top:16px;padding:14px 16px;border:1px solid color-mix(in srgb,var(--gold) 50%,var(--line));border-radius:var(--r);background:var(--brass-soft);animation:pop .3s var(--ease)}
+.list{display:grid;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;box-shadow:var(--shadow-sm)}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:start;padding:14px 16px;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item strong{font-weight:600}
+.item .meta{display:block;font-size:.8rem;color:var(--muted)}
+.item details{grid-column:1 / -1;font-size:.82rem}
+.item summary{cursor:pointer;color:var(--accent);font-weight:550;width:max-content}
+.checks{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:5px}
+.checks li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px;align-items:start}
+.checks .y{color:var(--ok);font-weight:700} .checks .n{color:var(--warn);font-weight:700}
+.lic{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:16px 18px;display:grid;gap:10px;box-shadow:var(--shadow-sm)}
+.meter{display:grid;grid-template-columns:minmax(100px,150px) minmax(0,1fr) auto;gap:12px;align-items:center;font-size:.85rem}
+.meter.sub{padding-left:12px;font-size:.79rem;color:var(--muted)}
+.meter .bar{height:8px;background:var(--sunk);border-radius:999px;overflow:hidden}
+.meter .bar i{display:block;height:100%;border-radius:999px;background:var(--accent);transition:width .6s var(--ease)}
+.meter .bar i.done{background:var(--ok)}
+.meter .num{font-variant-numeric:tabular-nums;white-space:nowrap;font-size:.8rem}
+
+/* add / verify */
+.result{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;box-shadow:var(--shadow-md);animation:pop .3s var(--ease)}
+.result .status{display:flex;gap:14px;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line)}
+.mark{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;flex:none}
+.ok .mark{background:var(--ok-bg);color:var(--ok)} .warn .mark{background:var(--warn-bg);color:var(--warn)} .bad .mark{background:var(--bad-bg);color:var(--bad)} .info .mark{background:var(--accent-soft);color:var(--accent)}
+.result .body{padding:16px 18px;display:grid;gap:12px}
+.result dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:8px 18px;margin:0}
+.result dt{color:var(--muted);font-size:.84rem} .result dd{margin:0}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:18px}
+.steps div{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);font-size:.84rem}
+.steps b{display:block;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);margin-bottom:2px}
+
+/* micro */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.mcard{display:grid;gap:10px;justify-items:center;text-align:center;padding:20px 18px;border:1px solid var(--line);border-radius:18px;background:var(--surface);box-shadow:var(--shadow-sm);transition:transform .2s var(--ease),box-shadow .2s}
+.mcard:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.mcard.locked .badge{filter:grayscale(1);opacity:.45}
+.mcard.ready{border-color:var(--gold);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 30%,transparent)}
+.badge{width:150px;height:150px}
+.mcard h3{font-size:.98rem}
+.mcard .meter{grid-template-columns:minmax(0,1fr) auto;width:100%}
+.tierlbl{font-size:.66rem;font-weight:650;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.overlay{position:fixed;inset:0;background:rgba(8,10,24,.5);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);display:grid;place-items:center;padding:20px;z-index:50}
+.modal{background:var(--surface);border:1px solid var(--line);border-radius:18px;max-width:720px;width:100%;max-height:100%;overflow:auto;padding:24px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:24px;align-items:start;box-shadow:var(--shadow-lg);animation:pop .28s var(--ease)}
+.modal .badge{width:200px;height:200px}
+
+/* career */
+.goals{display:flex;flex-wrap:wrap;gap:8px}
+.goals button{min-height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);cursor:pointer;font-weight:550;font-size:.86rem;color:var(--ink2)}
+.goals button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.rec{display:grid;gap:10px;padding:16px 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow-sm)}
+.rec .why{font-size:.84rem;color:var(--muted)}
+.providers{display:flex;flex-wrap:wrap;gap:8px}
+.prov{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 12px;border-radius:9px;border:1px solid var(--line2);background:var(--paper);text-decoration:none;color:var(--ink);font-size:.84rem;font-weight:550}
+.prov:hover{border-color:var(--muted)}
+.prov i{width:8px;height:8px;border-radius:50%;flex:none}
+.chat{display:grid;gap:10px;max-height:420px;overflow-y:auto;padding:4px}
+.msg{max-width:90%;padding:10px 14px;border-radius:14px;white-space:pre-wrap;font-size:.9rem;animation:pop .25s var(--ease)}
+.msg.user{justify-self:end;background:var(--accent);color:var(--accent-ink);border-bottom-right-radius:4px}
+.msg.coach{justify-self:start;background:var(--sunk);border-bottom-left-radius:4px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom));background:var(--ink);color:var(--paper);padding:11px 18px;border-radius:12px;font-size:.88rem;z-index:60;box-shadow:var(--shadow-lg)}
+
+@media (max-width:960px){ .side{transform:translateX(-102%);box-shadow:var(--shadow-lg)} .side.open{transform:none} .main{margin-left:0} .iconbtn{display:grid}
+  .topbar-in,.wrap{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))} }
+@media (max-width:860px){ .cols,.hero{grid-template-columns:minmax(0,1fr)} .totals{grid-template-columns:repeat(2,minmax(0,1fr))} .totals div:nth-child(3){border-left:0} .totals div:nth-child(n+3){border-top:1px solid var(--line)}
+  .steps,.grid3{grid-template-columns:minmax(0,1fr)} .modal{grid-template-columns:minmax(0,1fr);justify-items:center} .claimbar{grid-template-columns:minmax(0,1fr)} }
+@media (max-width:520px){ .grid2{grid-template-columns:minmax(0,1fr)} .panel{padding:16px} }
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<aside class="side" id="side" aria-label="Main navigation">
+  <a class="brand" href="../" aria-label="Attest website">
+    <svg width="28" height="28" viewBox="0 0 34 34" aria-hidden="true"><g fill="none" stroke="var(--brass)" stroke-width="1.3"><circle cx="17" cy="17" r="15"/><circle cx="17" cy="17" r="11" stroke-dasharray="1.5 2"/></g><path d="M11.5 17.5l3.5 3.5 7.5-8" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>Attest</span>
+  </a>
+  <nav class="tabs" id="tabs" role="tablist" aria-orientation="vertical">
+    <button role="tab" data-tab="home" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg><span>My record</span></button>
+    <button role="tab" data-tab="add" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><span>Add and claim</span><em class="navcount" id="claimCount" hidden></em></button>
+    <button role="tab" data-tab="verify" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><span>Verify a badge</span></button>
+    <button role="tab" data-tab="micro" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M8.5 14L7 22l5-3 5 3-1.5-8"/></svg><span>Micro-credentials</span><em class="navcount" id="microCount" hidden></em></button>
+    <button role="tab" data-tab="career" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg><span>Career and courses</span></button>
+  </nav>
+  <div class="me"><span class="avatar" id="meInitials">A</span><div style="min-width:0"><strong id="meName">Learner</strong><small id="meLinks"></small></div></div>
+</aside>
+<div class="scrim" id="scrim" hidden></div>
+
+<main class="main">
+  <header class="topbar"><div class="topbar-in">
+    <button class="iconbtn" id="menuBtn" aria-label="Open navigation" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <div class="crumbs">My Attest record <span aria-hidden="true">/</span> <strong id="pageTitle">My record</strong></div>
+    <button class="btn primary" data-go="add">Add a certificate</button>
+  </div></header>
+
+  <div class="wrap">
+    <div class="banner" id="banner" hidden></div>
+
+    <!-- HOME -->
+    <section class="view" data-view="home">
+      <div class="hero">
+        <div class="form" style="gap:10px">
+          <span class="eyebrow" id="hDate"></span>
+          <h2 id="hTitle">Your learning record</h2>
+          <p class="muted" style="margin:0" id="hSub"></p>
+          <div class="row" style="margin-top:6px"><button class="btn primary" data-go="add">Add a certificate or credit</button><button class="btn" data-go="career">Find courses</button></div>
+        </div>
+        <div class="ring" aria-label="Attest points">
+          <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--sunk)" stroke-width="10"/><circle id="ringArc" cx="60" cy="60" r="52" fill="none" stroke="var(--gold)" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 400" style="transition:stroke-dasharray .8s var(--ease)"/></svg>
+          <div class="val"><b id="ptsVal">0</b><small>Attest points</small><small id="ptsNext" style="text-transform:none;letter-spacing:0;font-weight:500"></small></div>
+        </div>
+      </div>
+      <div id="claimBar"></div>
+      <div class="totals">
+        <div><b id="tPdh">0</b><span>Verified PDH</span></div><div><b id="tPdu">0</b><span>Verified PDU</span></div>
+        <div><b id="tCeu">0</b><span>Verified CEU</span></div><div><b id="tSch">0</b><span>Semester credit hrs</span></div>
+      </div>
+      <div class="cols" style="margin-top:24px">
+        <div class="form">
+          <div class="row" style="justify-content:space-between"><h3>My credentials and credits</h3><span class="hint">Only verified items count toward credit and points</span></div>
+          <div id="recList"></div>
+        </div>
+        <div class="form">
+          <h3>Licenses and certifications</h3>
+          <div id="licList" class="form"></div>
+          <div class="row" style="justify-content:space-between"><h3>Next micro-credential</h3><button class="btn ghost" data-go="micro">See all</button></div>
+          <div id="nextMicro"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADD AND CLAIM -->
+    <section class="view" data-view="add" hidden>
+      <div class="head"><div><span class="eyebrow">Add and claim</span><h2>Add to your record</h2><p class="muted">Claim credentials issued to you through Attest, or add a certificate or credit from anywhere else. Everything is checked by Attest before it counts.</p></div></div>
+      <div class="steps" aria-label="How verification works">
+        <div><b>1 · Submit</b>Add the certificate with its verification link or file.</div>
+        <div><b>2 · Automatic checks</b>Attest checks the issuer, link, dates, credit and duplicates.</div>
+        <div><b>3 · Verified</b>Strong matches count right away; the rest go to Attest's review team.</div>
+      </div>
+      <div class="cols">
+        <form class="panel form" id="addForm" autocomplete="off">
+          <h3>Add a certificate or claim credit</h3>
+          <div class="grid2">
+            <label>Issuer<input type="text" id="fIssuer" list="issuerList" placeholder="e.g. PMI, Coursera, LinkedIn Learning, IEEE" required></label>
+            <label>Type<select id="fAct"></select></label>
+          </div>
+          <datalist id="issuerList"></datalist>
+          <label>Title<input type="text" id="fTitle" placeholder="As shown on the certificate" required></label>
+          <div class="grid3">
+            <label>Date completed<input type="date" id="fDate" required></label>
+            <label id="fHoursWrap">Hours<input type="number" id="fHours" min="0" step="0.25" placeholder="e.g. 8"></label>
+            <label id="fAreaWrap">Main topic<select id="fArea"><option value="technical">Technical</option><option value="leadership">Leadership &amp; people</option><option value="business">Business &amp; strategy</option><option value="ethics">Ethics</option></select></label>
+          </div>
+          <div class="grid2" id="fCountWrap" hidden><label><span id="fCountLbl">Number</span><input type="number" id="fCount" min="1" step="1" value="1"></label><label>Hours spent (PMI Giving Back)<input type="number" id="fGb" min="0" step="0.5" placeholder="0"></label></div>
+          <div class="grid2" id="fUnitsWrap" hidden><label>Credit hours earned<input type="number" id="fUnits" min="0" step="0.5" value="3"></label><label>Term system<select id="fUnitType"><option value="semester">Semester</option><option value="quarter">Quarter</option></select></label></div>
+          <label id="fFirstWrap" style="display:flex;flex-direction:row;align-items:center;gap:8px" hidden><input type="checkbox" id="fFirst" checked> First time I've taught or presented this material</label>
+          <label>Verification link<input type="url" id="fLink" placeholder="The issuer's verification page for this certificate"><span class="hint">For example a Coursera verify link, a Credly badge page or your PMI record. Links on the issuer's own site verify fastest.</span></label>
+          <div class="grid2">
+            <label>Certificate file (optional)<input type="file" id="fFile" accept=".pdf,.png,.jpg,.jpeg"></label>
+            <label>Credential ID (optional)<input type="text" id="fCid" placeholder="ID printed on the certificate"></label>
+          </div>
+          <div id="fPreview"></div>
+          <div class="row"><button class="btn primary" type="submit">Submit for verification</button></div>
+        </form>
+        <div class="form">
+          <div class="panel form">
+            <h3>Claim a credential issued to you</h3>
+            <p class="hint" style="margin:0">Credentials issued through Attest to your email appear here automatically. You can also enter an ID.</p>
+            <div id="claimList" class="form"></div>
+            <form class="row" id="claimForm" autocomplete="off"><label for="claimId" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Credential ID</label><input type="text" id="claimId" placeholder="CRT-XXXX-XXXX" class="mono" style="flex:1 1 180px;text-transform:uppercase"><button class="btn" type="submit">Find</button></form>
+          </div>
+          <div id="addResult"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VERIFY -->
+    <section class="view" data-view="verify" hidden>
+      <div class="head"><div><span class="eyebrow">Verify</span><h2>Verify a badge or credential</h2><p class="muted">Check any Attest credential or micro-credential by its ID, yours or someone else's.</p></div></div>
+      <form class="row" id="vForm" style="max-width:640px" autocomplete="off"><label for="vId" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Credential ID</label><input type="text" id="vId" class="mono" placeholder="CRT-XXXX-XXXX or ATT-XXXX-XXXX" style="flex:1 1 260px;min-height:48px;text-transform:uppercase;letter-spacing:.06em"><button class="btn primary" type="submit" style="min-height:48px">Verify</button></form>
+      <div id="vOut" style="max-width:640px;margin-top:20px"></div>
+    </section>
+
+    <!-- MICRO -->
+    <section class="view" data-view="micro" hidden>
+      <div class="head"><div><span class="eyebrow">Micro-credentials</span><h2>Showcase what you've proven</h2><p class="muted">Every verified credit earns Attest points: one point per verified contact hour, counted once per item. Reach a level or a skill milestone to claim a micro-credential you can share on LinkedIn.</p></div>
+        <div class="panel" style="padding:14px 18px"><span class="eyebrow">Your points</span><div style="font-size:1.9rem;font-weight:650;letter-spacing:-.03em" id="mPts">0</div></div></div>
+      <div class="mgrid" id="mGrid"></div>
+    </section>
+
+    <!-- CAREER -->
+    <section class="view" data-view="career" hidden>
+      <div class="head"><div><span class="eyebrow">Career and courses</span><h2>Grow your skills and credit</h2><p class="muted">Pick your goals. Attest suggests what to learn next from PMI, LinkedIn Learning and Coursera, starting with what closes your license gaps. When you finish a course, add it here and Attest verifies it.</p></div></div>
+      <div class="form" style="gap:10px"><span class="eyebrow">My goals</span><div class="goals" id="goals"></div></div>
+      <div class="cols" style="margin-top:22px">
+        <div class="form"><h3>Recommended for you</h3><div id="recs" class="form"></div></div>
+        <div class="panel form">
+          <div><h3>Career coach</h3><p class="hint" style="margin:4px 0 0">Ask about next steps, certifications or how to close a gap. The coach sees your verified record and goals.</p></div>
+          <div id="coachOff" class="form" hidden>
+            <p class="hint" style="margin:0">The coach uses Claude. Add your own Claude API key to try it in this preview. It is kept only in this browser and requests go straight to Anthropic.</p>
+            <form class="row" id="keyForm" autocomplete="off"><label for="keyIn" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Claude API key</label><input type="password" id="keyIn" placeholder="sk-ant-…" style="flex:1 1 200px"><button class="btn" type="submit">Save key</button></form>
+          </div>
+          <div id="coachOn" class="form" hidden>
+            <div class="chat" id="chat" aria-live="polite"></div>
+            <div class="row" id="coachSuggest">
+              <button class="btn" type="button" data-coach="What should I focus on in the next 3 months to renew my licenses on time?">Next 3 months</button>
+              <button class="btn" type="button" data-coach="Which certification would most advance my career, given my record?">Best next certification</button>
+            </div>
+            <form class="form" id="coachForm" style="gap:8px"><label for="coachIn" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Ask the coach</label><textarea id="coachIn" rows="2" placeholder="e.g. How do I move from engineering into project leadership?"></textarea><div class="row" style="justify-content:flex-end"><button class="btn primary" type="submit" id="coachSend">Ask</button></div></form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div class="overlay" id="overlay" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mdTitle"><div id="mdBadge"></div><div class="form" id="mdBody"></div></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="../assets/store.js"></script>
+<script src="../assets/learner.js"></script>
+<script>
+(() => {
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const E = window.AttestLearner, today = E.today();
+const fmt = iso => iso ? new Date(iso + "T12:00:00").toLocaleDateString(undefined, { year:"numeric", month:"short", day:"numeric" }) : "—";
+const n = v => String(Math.round((v || 0) * 100) / 100);
+let tt; const toast = m => { const t = $("#toast"); t.textContent = m; t.hidden = false; clearTimeout(tt); tt = setTimeout(() => t.hidden = true, 2600); };
+
+/* ---------- state ---------- */
+const acct = window.AttestStore ? AttestStore.account() : null;
+const isLearnerAcct = acct && acct.role === "learner";
+let L = E.load();
+if (isLearnerAcct && (!L || (L.profile.email || "").toLowerCase() !== acct.email)) L = E.blank({ name: acct.name, email: acct.email, org: acct.org || "" });
+if (!L) L = E.demo();
+const registryState = () => (window.AttestStore && (AttestStore.load() || AttestStore.demo())) || { creds: [], org: { name: "Attest issuer" } };
+const save = () => { if (!E.save(L)) toast("This browser couldn't save. Allow site data for this page."); };
+save();
+const reg = () => { const R = registryState(); return { creds: R.creds, orgName: R.org.name, orgs: [R.org.name] }; };
+const myEmail = () => (L.profile.email || "").toLowerCase();
+const issuedToMe = () => reg().creds.filter(c => (c.recipientEmail || "").toLowerCase() === myEmail() && c.status !== "revoked");
+const unclaimed = () => issuedToMe().filter(c => !L.claimed.includes(c.id));
+const statusOf = c => c.status === "revoked" ? "revoked" : c.expiresOn && c.expiresOn < today ? "expired" : "active";
+/* verified records: claimed issuer credentials + items that passed verification */
+function verifiedRecords(){
+  const R = reg();
+  const claimed = R.creds.filter(c => L.claimed.includes(c.id) && c.status !== "revoked").map(c => ({ src:"issuer", id:c.id, title:c.programName, issuer:R.orgName, date:c.issuedOn, credits:c.credits || {}, status:"verified", expired: statusOf(c) === "expired" }));
+  const items = L.items.filter(i => i.status === "verified").map(i => ({ src:"item", id:i.id, title:i.title, issuer:i.issuer, date:i.date, credits:i.credits || {}, status:"verified" }));
+  return claimed.concat(items);
+}
+const chips = c => { c = c || {}; const p = []; if (c.pdh) p.push(["pdh", n(c.pdh) + " PDH"]); if (c.pdu) p.push(["pdu", n(c.pdu) + " PDU"]); if (c.ceu) p.push(["ceu", n(c.ceu) + " CEU"]); if (c.sch) p.push(["sch", n(c.sch) + " sem. hr"]);
+  return p.length ? `<span class="chips">${p.map(([k, t]) => `<span class="chip ${k}">${esc(t)}</span>`).join("")}</span>` : ""; };
+const PILL = { verified:["verified","Verified"], review:["review","In review"], info:["info","Needs evidence"], rejected:["rejected","Not verified"] };
+const pill = s => `<span class="pill ${PILL[s][0]}">${PILL[s][1]}</span>`;
+
+/* ---------- navigation ---------- */
+const TITLES = { home:"My record", add:"Add and claim", verify:"Verify a badge", micro:"Micro-credentials", career:"Career and courses" };
+function setDrawer(o){ $("#side").classList.toggle("open", o); $("#scrim").hidden = !o; $("#menuBtn").setAttribute("aria-expanded", String(o)); }
+function go(tab){ $$("#tabs button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === tab))); $$("section.view").forEach(s => s.hidden = s.dataset.view !== tab);
+  $("#pageTitle").textContent = TITLES[tab]; setDrawer(false); window.scrollTo(0, 0); try { localStorage.setItem("attest.learner.tab", tab); } catch {} }
+$("#tabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) go(b.dataset.tab); });
+document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
+$("#menuBtn").addEventListener("click", () => setDrawer(!$("#side").classList.contains("open"))); $("#scrim").addEventListener("click", () => setDrawer(false));
+
+/* ---------- licenses (verified credit only) ---------- */
+function licenseProgress(lic, recs){
+  const inC = recs.filter(r => r.date >= lic.cycleStart && r.date <= lic.cycleEnd), sum = k => inC.reduce((a, r) => a + (+r.credits[k] || 0), 0), items = [];
+  if (lic.pdh) items.push({ label:"PDH", have:sum("pdh"), need:lic.pdh });
+  if (lic.ethics) items.push({ label:"Ethics PDH", have:sum("ethics"), need:lic.ethics, sub:true });
+  if (lic.pdu){ const ed = sum("pduEd"), gb = Math.min(lic.gbMax ?? 1e9, sum("pduGB")); items.push({ label:"PDU", have:ed + gb, need:lic.pdu });
+    if (lic.edMin) items.push({ label:"Education PDU", have:ed, need:lic.edMin, sub:true });
+    if (lic.areaMin) [["pduWW","Ways of Working"],["pduPS","Power Skills"],["pduBA","Business Acumen"]].forEach(([k, l]) => items.push({ label:l, have:sum(k), need:lic.areaMin, sub:true, key:k })); }
+  if (lic.ceu) items.push({ label:"CEU", have:sum("ceu"), need:lic.ceu });
+  items.forEach(i => i.gap = Math.max(0, i.need - i.have)); return items;
+}
+
+/* ---------- micro-credentials ---------- */
+const ICON = { star:"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z", people:"M9 11a3.2 3.2 0 1 0 0-6.4A3.2 3.2 0 0 0 9 11zM3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.8a3.2 3.2 0 0 1 0 6.2M18 14.3c2 .7 3 2.8 3 5.7", shield:"M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM8.5 12l2.5 2.5 4.5-5", mic:"M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3", link:"M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" };
+function shape(s){ if (s === "hex") return "M100 8 L180 54 L180 146 L100 192 L20 146 L20 54 Z"; if (s === "shield") return "M100 8 L178 36 L178 100 C178 150 142 180 100 194 C58 180 22 150 22 100 L22 36 Z"; return "M100 8 A92 92 0 1 1 99.9 8 Z"; }
+function badgeSvg(m, opts = {}){
+  const words = m.name.replace("Verified Learner · ", "").split(" "), lines = []; let cur = "";
+  words.forEach(w => { if ((cur + " " + w).trim().length > 14 && cur) { lines.push(cur); cur = w; } else cur = (cur + " " + w).trim(); }); if (cur) lines.push(cur);
+  const label = m.tier === "Level" ? "VERIFIED LEARNER" : "ATTEST SKILL";
+  return `<svg class="badge" viewBox="0 0 200 200" role="img" aria-label="${esc(m.name)} badge" xmlns="http://www.w3.org/2000/svg">
+  <path d="${shape(m.shape)}" fill="#C99A3A"/><path d="${shape(m.shape)}" transform="translate(100 100) scale(.9) translate(-100 -100)" fill="${m.color}"/>
+  <path d="${shape(m.shape)}" transform="translate(100 100) scale(.82) translate(-100 -100)" fill="none" stroke="#E6C77E" stroke-opacity=".6" stroke-width="1.2"/>
+  <text x="100" y="${m.shape === "hex" ? 60 : 52}" text-anchor="middle" font-family="Geist, Helvetica, Arial, sans-serif" font-size="8.5" font-weight="700" letter-spacing="1.6" fill="#E6C77E">${label}</text>
+  <g transform="translate(82 ${m.shape === "hex" ? 68 : 62}) scale(1.5)" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="${ICON[m.icon]}"/></g>
+  ${lines.slice(0, 3).map((l, i) => `<text x="100" y="${(m.shape === "hex" ? 122 : 118) + i * 16}" text-anchor="middle" font-family="Geist, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">${esc(l)}</text>`).join("")}
+  <text x="100" y="${m.shape === "shield" ? 172 : 166}" text-anchor="middle" font-family="Geist Mono, Menlo, monospace" font-size="8.5" fill="#E6C77E" letter-spacing="1">${esc(opts.id || "ATTEST")}</text></svg>`;
+}
+function microState(){
+  const recs = verifiedRecords(), s = E.stats(recs);
+  return E.MICRO.map(m => { const earned = L.micro.find(x => x.key === m.key), v = m.val(s);
+    return { ...m, v, earned, ready: !earned && v >= m.need, pct: Math.min(100, v / m.need * 100) }; });
+}
+const verifyUrl = id => { try { return new URL("../verify.html#" + id, location.href).href; } catch { return "../verify.html#" + id; } };
+function liAdd(x){ const [y, mo] = x.earnedOn.split("-"); const p = new URLSearchParams({ startTask:"CERTIFICATION_NAME", name:x.name, organizationName:"Attest", issueYear:y, issueMonth:String(+mo), certId:x.id, certUrl:verifyUrl(x.id) }); return "https://www.linkedin.com/profile/add?" + p; }
+function claimMicro(key){
+  const m = microState().find(x => x.key === key); if (!m || !m.ready) return;
+  const recs = verifiedRecords(), rec = { key, id:E.newMicroId(), name:m.name, criteria:m.criteria, earnedOn:today, holder:L.profile.name, evidence:recs.map(r => r.id) };
+  L.micro.push(rec); save(); renderAll(); openMicro(key); toast("Micro-credential earned");
+}
+function openMicro(key){
+  const m = microState().find(x => x.key === key), e = m.earned; if (!e) return;
+  $("#mdBadge").innerHTML = badgeSvg(m, { id:e.id });
+  $("#mdBody").innerHTML = `<div><span class="eyebrow">${esc(m.tier)} micro-credential · issued by Attest</span><h3 id="mdTitle" style="font-size:1.35rem;margin-top:4px">${esc(m.name)}</h3></div>
+    <dl style="display:grid;grid-template-columns:max-content minmax(0,1fr);gap:8px 16px;margin:0;font-size:.9rem"><dt class="muted">Holder</dt><dd style="margin:0">${esc(e.holder)}</dd><dt class="muted">Earned</dt><dd style="margin:0">${fmt(e.earnedOn)}</dd><dt class="muted">Criteria</dt><dd style="margin:0">${esc(m.criteria)}</dd><dt class="muted">Evidence</dt><dd style="margin:0">${e.evidence.length} verified item${e.evidence.length === 1 ? "" : "s"}</dd><dt class="muted">ID</dt><dd style="margin:0" class="mono">${esc(e.id)}</dd></dl>
+    <div class="row"><a class="btn li" href="${esc(liAdd(e))}" target="_blank" rel="noopener noreferrer">Add to LinkedIn profile</a><a class="btn" href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(verifyUrl(e.id))}" target="_blank" rel="noopener noreferrer">Share on LinkedIn</a></div>
+    <div class="row"><button class="btn" id="mdCopy">Copy verification link</button><button class="btn" id="mdSvg">Download badge</button><button class="btn ghost" id="mdClose">Close</button></div>`;
+  $("#overlay").hidden = false;
+  $("#mdClose").onclick = () => $("#overlay").hidden = true;
+  $("#mdCopy").onclick = async () => { try { await navigator.clipboard.writeText(verifyUrl(e.id)); toast("Link copied"); } catch { toast(verifyUrl(e.id)); } };
+  $("#mdSvg").onclick = () => { const svg = badgeSvg(m, { id:e.id }).replace('class="badge" ', ""); const url = URL.createObjectURL(new Blob([svg], { type:"image/svg+xml" })); const a = document.createElement("a"); a.href = url; a.download = `${m.name.replace(/[^\w]+/g, "-")}-${e.id}.svg`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 3000); };
+}
+$("#overlay").addEventListener("click", e => { if (e.target.id === "overlay") $("#overlay").hidden = true; });
+document.addEventListener("keydown", e => { if (e.key === "Escape") $("#overlay").hidden = true; });
+
+/* ---------- render ---------- */
+function renderHome(){
+  const recs = verifiedRecords(), s = E.stats(recs), ms = microState();
+  $("#hDate").textContent = new Date().toLocaleDateString(undefined, { weekday:"long", month:"long", day:"numeric" });
+  $("#hTitle").textContent = `Welcome back, ${L.profile.name.split(" ")[0] || "learner"}`;
+  const pend = L.items.filter(i => i.status === "review").length, info = L.items.filter(i => i.status === "info").length;
+  $("#hSub").textContent = `${recs.length} verified item${recs.length === 1 ? "" : "s"}` + (pend ? ` · ${pend} in review` : "") + (info ? ` · ${info} need${info === 1 ? "s" : ""} evidence` : "");
+  const lvl = ms.filter(m => m.tier === "Level"), next = lvl.find(m => !m.earned) || lvl[lvl.length - 1], prev = lvl.slice().reverse().find(m => m.earned);
+  const lo = prev ? prev.need : 0, frac = next.earned ? 1 : Math.min(1, (s.points - lo) / (next.need - lo || 1));
+  $("#ringArc").setAttribute("stroke-dasharray", `${(frac * 326.7).toFixed(1)} 400`);
+  $("#ptsVal").textContent = n(s.points); $("#ptsNext").textContent = next.earned ? "Top level reached" : `${n(Math.max(0, next.need - s.points))} to ${next.name.split("· ")[1]}`;
+  $("#tPdh").textContent = n(s.pdh); $("#tPdu").textContent = n(s.pdu); $("#tCeu").textContent = n(s.ceu); $("#tSch").textContent = n(s.sch);
+  const un = unclaimed();
+  $("#claimBar").innerHTML = un.length ? `<div class="claimbar"><span class="pill claim">Ready to claim</span><span><strong>${un.length} credential${un.length > 1 ? "s" : ""} issued to you</strong><span class="hint" style="display:block">${esc(un.map(c => c.programName).join(", "))}</span></span><button class="btn gold" data-go="add">Claim now</button></div>` : "";
+  const rows = [];
+  const R = reg();
+  R.creds.filter(c => L.claimed.includes(c.id)).forEach(c => rows.push({ date:c.issuedOn, html:`<div class="item"><span><strong>${esc(c.programName)}</strong><span class="meta">Issued by ${esc(R.orgName)} · ${fmt(c.issuedOn)} · <span class="mono">${esc(c.id)}</span></span><span style="display:block;margin-top:5px">${chips(c.credits)}</span></span>${c.status === "revoked" ? pill("rejected") : pill("verified")}<details><summary>How it was verified</summary><ul class="checks"><li><span class="y">✓</span><span>Issued through Attest by ${esc(R.orgName)} to ${esc(c.recipientEmail)}</span></li><li><span class="y">✓</span><span>Claimed by the matching learner account</span></li></ul></details></div>` }));
+  L.items.forEach(i => rows.push({ date:i.date, html:`<div class="item"><span><strong>${esc(i.title)}</strong><span class="meta">${esc(i.issuer)} · ${esc(E.ACT[i.activity]?.label || "")} · ${fmt(i.date)}</span><span style="display:block;margin-top:5px">${chips(i.credits)}</span>${i.reason ? `<span class="hint" style="display:block;margin-top:4px">${esc(i.reason)}</span>` : ""}</span>${pill(i.status)}
+    <details><summary>Verification checks · ${i.score}/100${i.method ? " · " + esc(i.method) : ""}</summary><ul class="checks">${(i.checks || []).map(c => `<li><span class="${c.ok ? "y" : "n"}">${c.ok ? "✓" : "!"}</span><span>${esc(c.label)}${c.note ? ` <span class="muted">· ${esc(c.note)}</span>` : ""}</span></li>`).join("")}</ul>
+    ${i.status === "info" ? `<div class="row" style="margin-top:8px"><button class="btn" data-fix="${esc(i.id)}">Add evidence</button></div>` : ""}</details></div>` }));
+  rows.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  $("#recList").innerHTML = rows.length ? `<div class="list">${rows.map(r => r.html).join("")}</div>` : `<div class="empty">Nothing here yet. Claim a credential issued to you or add a certificate.</div>`;
+  $("#licList").innerHTML = L.licenses.length ? L.licenses.map(lic => { const it = licenseProgress(lic, recs), open = it.filter(i => i.gap).length;
+      return `<div class="lic"><div class="row" style="justify-content:space-between"><span><strong style="font-weight:600">${esc(lic.name)}</strong><span class="hint" style="display:block">Cycle ends ${fmt(lic.cycleEnd)}</span></span>${open ? `<span class="pill info">${open} open</span>` : `<span class="pill verified">Met</span>`}</div>
+      ${it.map(i => `<div class="meter ${i.sub ? "sub" : ""}"><span>${esc(i.label)}</span><span class="bar"><i class="${i.gap ? "" : "done"}" style="width:${Math.min(100, i.have / i.need * 100)}%"></i></span><span class="num">${n(i.have)} / ${n(i.need)}</span></div>`).join("")}</div>`; }).join("")
+    : `<div class="empty">No licenses tracked yet. Your issuer can add them, or ask the career coach which ones apply to you.</div>`;
+  const nm = ms.find(m => m.ready) || ms.filter(m => !m.earned).sort((a, b) => b.pct - a.pct)[0];
+  $("#nextMicro").innerHTML = nm ? `<div class="mcard ${nm.ready ? "ready" : ""}" style="grid-template-columns:96px minmax(0,1fr);justify-items:start;text-align:left;align-items:center">${badgeSvg(nm).replace('class="badge"', 'class="badge" style="width:96px;height:96px"')}<div class="form" style="gap:6px;width:100%"><strong>${esc(nm.name)}</strong><span class="hint">${esc(nm.criteria)}</span>
+     ${nm.ready ? `<button class="btn gold" data-claim-micro="${nm.key}" style="justify-self:start">Claim micro-credential</button>` : `<div class="meter" style="grid-template-columns:minmax(0,1fr) auto"><span class="bar"><i style="width:${nm.pct}%"></i></span><span class="num">${n(nm.v)} / ${nm.need}</span></div>`}</div></div>` : `<div class="empty">You've earned every micro-credential available today.</div>`;
+}
+function renderMicro(){
+  const ms = microState(), s = E.stats(verifiedRecords()); $("#mPts").textContent = n(s.points);
+  $("#mGrid").innerHTML = ms.map(m => `<div class="mcard ${m.earned ? "" : m.ready ? "ready" : "locked"}">${badgeSvg(m, { id:m.earned?.id })}<span class="tierlbl">${esc(m.tier)}</span><h3>${esc(m.name)}</h3><span class="hint">${esc(m.criteria)}</span>
+    ${m.earned ? `<span class="pill verified">Earned ${fmt(m.earned.earnedOn)}</span><button class="btn" data-open-micro="${m.key}">Share</button>`
+      : m.ready ? `<button class="btn gold" data-claim-micro="${m.key}">Claim micro-credential</button>`
+      : `<div class="meter"><span class="bar"><i style="width:${m.pct}%"></i></span><span class="num">${n(m.v)} / ${m.need}</span></div>`}</div>`).join("");
+}
+document.addEventListener("click", e => { const c = e.target.closest("[data-claim-micro]"); if (c) claimMicro(c.dataset.claimMicro); const o = e.target.closest("[data-open-micro]"); if (o) openMicro(o.dataset.openMicro); });
+
+/* ---------- add and claim ---------- */
+$("#fAct").innerHTML = Object.entries(E.ACT).map(([k, a]) => `<option value="${k}">${esc(a.label)}</option>`).join("");
+$("#issuerList").innerHTML = E.ISSUERS.map(i => `<option value="${esc(i.name)}">`).join("");
+$("#fDate").value = today;
+function readForm(){ return { kind:"certificate", activity:$("#fAct").value, issuer:$("#fIssuer").value.trim(), title:$("#fTitle").value.trim(), date:$("#fDate").value, hours:$("#fHours").value, area:$("#fArea").value,
+  count:$("#fCount").value, gbHours:$("#fGb").value, units:$("#fUnits").value, unitType:$("#fUnitType").value, firstTime:$("#fFirst").checked, evidence:$("#fLink").value.trim(), credentialId:$("#fCid").value.trim(), fileName:$("#fFile").files[0]?.name || "" }; }
+function syncForm(){ const a = E.ACT[$("#fAct").value];
+  $("#fHoursWrap").hidden = a.input !== "hours"; $("#fAreaWrap").hidden = a.input !== "hours"; $("#fCountWrap").hidden = a.input !== "count"; $("#fUnitsWrap").hidden = a.input !== "units"; $("#fFirstWrap").hidden = !a.first;
+  $("#fCountLbl").textContent = `Number of ${a.unit || "items"}`;
+  const x = readForm(), c = E.credits(x), host = E.hostOf(x.evidence);
+  $("#fPreview").innerHTML = `<div class="row" style="gap:8px"><span class="hint">Worth once verified</span>${chips(c) || '<span class="hint">no credit yet</span>'}<span class="hint">· ${n(E.points(c))} Attest points</span></div>` + (host ? `<div class="hint" style="margin-top:4px">Link host: ${esc(host)}</div>` : ""); }
+$("#addForm").addEventListener("input", syncForm); $("#addForm").addEventListener("change", syncForm); syncForm();
+function ctx(){ const R = reg(); return { registry:R.creds, orgs:R.orgs, email:myEmail(), items:L.items }; }
+function resultCard(v, title){
+  const cls = { verified:"ok", review:"info", info:"warn", rejected:"bad" }[v.status], head = { verified:"Verified", review:"Sent to Attest review", info:"Needs evidence", rejected:"Not verified" }[v.status];
+  const sub = { verified:"It counts toward your credit and points now.", review:"Most checks passed. Attest's team confirms it, usually within 2 business days.", info:v.reason, rejected:v.reason }[v.status];
+  const ico = { ok:'<path d="M5 12.5l4.5 4.5L19 7.5"/>', info:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 2"/>', warn:'<path d="M12 8v5M12 16.5v.01"/><circle cx="12" cy="12" r="9"/>', bad:'<path d="M7 7l10 10M17 7L7 17"/>' }[cls];
+  return `<div class="result ${cls}"><div class="status"><div class="mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ico}</svg></div><div><strong>${head}: ${esc(title)}</strong><div class="hint">${esc(sub || "")}</div></div></div>
+    <div class="body"><span class="eyebrow">Automatic checks · score ${v.score}/100</span><ul class="checks" style="margin:0">${v.checks.map(c => `<li><span class="${c.ok ? "y" : "n"}">${c.ok ? "✓" : "!"}</span><span>${esc(c.label)}${c.note ? ` <span class="muted">· ${esc(c.note)}</span>` : ""}</span></li>`).join("")}</ul></div></div>`;
+}
+$("#addForm").addEventListener("submit", e => {
+  e.preventDefault(); const x = readForm();
+  if (!x.issuer || !x.title){ toast("Add the issuer and title."); return; }
+  x.credits = E.credits(x); x.id = "it-" + Date.now().toString(36); x.submittedAt = Date.now();
+  const v = E.verify(x, ctx());
+  if (v.method === "Attest registry match" || (v.status === "rejected" && /different email/.test(v.reason))){
+    const id = (/\b[A-Z]{2,5}-[A-Z0-9]{4}-[A-Z0-9]{4}\b/.exec((x.evidence + " " + x.credentialId).toUpperCase()) || [])[0];
+    if (v.status === "verified" && id && !L.claimed.includes(id)){ L.claimed.push(id); save(); renderAll(); $("#addResult").innerHTML = resultCard(v, x.title); toast("Claimed from the Attest registry"); return; }
+    $("#addResult").innerHTML = resultCard(v, x.title); return;
+  }
+  Object.assign(x, { checks:v.checks, score:v.score, status:v.status, method:v.method, reason:v.reason });
+  if (v.status !== "rejected") L.items.push(x);
+  save(); renderAll(); $("#addResult").innerHTML = resultCard(v, x.title);
+  if (v.status !== "rejected"){ $("#addForm").reset(); $("#fDate").value = today; syncForm(); }
+});
+function renderClaims(){
+  const un = unclaimed(), R = reg();
+  $("#claimCount").hidden = !un.length; $("#claimCount").textContent = un.length || "";
+  $("#claimList").innerHTML = un.length ? un.map(c => `<div class="claimbar" style="margin:0;grid-template-columns:minmax(0,1fr) auto"><span><strong>${esc(c.programName)}</strong><span class="hint" style="display:block">${esc(R.orgName)} · ${fmt(c.issuedOn)} · <span class="mono">${esc(c.id)}</span></span><span style="display:block;margin-top:4px">${chips(c.credits)}</span></span><button class="btn gold" data-claim="${esc(c.id)}">Claim</button></div>`).join("")
+    : `<div class="empty" style="padding:16px">No unclaimed credentials for ${esc(L.profile.email || "your email")}.</div>`;
+}
+function claim(id){ const c = issuedToMe().find(x => x.id === id); if (!c) return false; if (!L.claimed.includes(id)) L.claimed.push(id); save(); renderAll(); toast(`Claimed ${c.programName}`); return true; }
+document.addEventListener("click", e => { const b = e.target.closest("[data-claim]"); if (b) claim(b.dataset.claim);
+  const f = e.target.closest("[data-fix]"); if (f){ const it = L.items.find(i => i.id === f.dataset.fix); if (!it) return; go("add");
+    $("#fIssuer").value = it.issuer; $("#fTitle").value = it.title; $("#fAct").value = it.activity; $("#fDate").value = it.date; $("#fHours").value = it.hours || ""; $("#fArea").value = it.area || "technical"; $("#fCount").value = it.count || 1; $("#fGb").value = it.gbHours || "";
+    L.items = L.items.filter(i => i.id !== it.id); save(); renderAll(); syncForm(); $("#fLink").focus(); toast("Add a verification link or file, then submit again"); } });
+$("#claimForm").addEventListener("submit", e => { e.preventDefault(); const id = $("#claimId").value.trim().toUpperCase(); if (!id) return;
+  const c = reg().creds.find(x => x.id === id);
+  if (!c) $("#addResult").innerHTML = `<div class="result bad"><div class="status"><div class="mark">!</div><div><strong>No Attest credential with ID ${esc(id)}</strong><div class="hint">For certificates from other issuers, use the form to add them with a verification link.</div></div></div></div>`;
+  else if ((c.recipientEmail || "").toLowerCase() !== myEmail()) $("#addResult").innerHTML = `<div class="result bad"><div class="status"><div class="mark">!</div><div><strong>This credential was issued to a different email</strong><div class="hint">Ask the issuer to correct the email, or sign in with the address it was sent to.</div></div></div></div>`;
+  else { claim(id); $("#addResult").innerHTML = ""; }
+  $("#claimId").value = ""; });
+
+/* ---------- verify ---------- */
+function verifyId(raw){
+  const id = raw.trim().toUpperCase(), R = reg(), out = $("#vOut"); if (!id) return;
+  const c = R.creds.find(x => x.id === id), m = L.micro.find(x => x.id === id);
+  if (m){ const def = E.MICRO.find(x => x.key === m.key);
+    out.innerHTML = `<div class="result ok"><div class="status"><div class="mark">✓</div><div><strong>Valid micro-credential</strong><div class="hint">Issued by Attest from verified credit.</div></div></div><div class="body" style="grid-template-columns:120px minmax(0,1fr);display:grid;align-items:center">${badgeSvg(def, { id:m.id }).replace('class="badge"', 'class="badge" style="width:120px;height:120px"')}<dl><dt>Holder</dt><dd>${esc(m.holder)}</dd><dt>Credential</dt><dd>${esc(m.name)}</dd><dt>Criteria</dt><dd>${esc(m.criteria)}</dd><dt>Earned</dt><dd>${fmt(m.earnedOn)}</dd></dl></div></div>`; return; }
+  if (!c){ out.innerHTML = `<div class="result bad"><div class="status"><div class="mark">!</div><div><strong>No credential found</strong><div class="hint">Check the ID for typos. Attest IDs look like CRT-7KQ3-9XPM or ATT-4KDM-82QX.</div></div></div></div>`; return; }
+  const st = statusOf(c), cls = st === "active" ? "ok" : st === "expired" ? "warn" : "bad", mine = (c.recipientEmail || "").toLowerCase() === myEmail(), claimed = L.claimed.includes(c.id);
+  out.innerHTML = `<div class="result ${cls}"><div class="status"><div class="mark">${st === "active" ? "✓" : "!"}</div><div><strong>${st === "active" ? "Valid credential" : st === "expired" ? "Credential expired" : "Credential revoked"}</strong><div class="hint">Issued by ${esc(R.orgName)} through Attest.</div></div></div>
+    <div class="body"><dl><dt>Recipient</dt><dd>${esc(c.recipientName)}</dd><dt>Credential</dt><dd>${esc(c.programName)}</dd><dt>Credits</dt><dd>${chips(c.credits) || "—"}</dd><dt>Awarded</dt><dd>${fmt(c.issuedOn)}</dd><dt>ID</dt><dd class="mono">${esc(c.id)}</dd></dl>
+    ${mine && st !== "revoked" ? (claimed ? `<span class="pill verified">On your record</span>` : `<button class="btn gold" data-claim="${esc(c.id)}" style="justify-self:start">This is mine: add to my record</button>`) : ""}</div></div>`;
+}
+$("#vForm").addEventListener("submit", e => { e.preventDefault(); verifyId($("#vId").value); });
+
+/* ---------- career ---------- */
+const GOALS = {
+  pmp:   { label:"Earn or renew PMP", skills:[["Agile and hybrid delivery","agile project management","Counts toward PMI's Ways of Working area."],["Leading teams and stakeholders","stakeholder management leadership","Counts toward PMI's Power Skills area."],["Business acumen for project leaders","business acumen strategy for project managers","Counts toward PMI's Business Acumen area."]], pmi:true },
+  pe:    { label:"Renew my PE license", skills:[["Engineering ethics","engineering ethics","Most boards require ethics hours each cycle."],["Codes and standards updates","engineering codes standards update","Technical PDH in your discipline."]] },
+  lead:  { label:"Move into leadership", skills:[["Leading engineering teams","engineering leadership","Builds toward the Leadership in Practice micro-credential."],["Communication and influence","communication influence leadership","PMI Power Skills."]], pmi:true },
+  ai:    { label:"AI and machine learning", skills:[["Machine learning foundations","machine learning","Technical depth employers ask for."],["Generative AI for engineers","generative AI","Fast-moving skill; pair with a hands-on project."]] },
+  data:  { label:"Data analytics", skills:[["Data analysis with Python","data analysis python","Practical analytics skills."],["Data visualization","data visualization","Communicate results clearly."]] },
+  cyber: { label:"Cybersecurity", skills:[["Security fundamentals","cybersecurity fundamentals","A base for security certifications."],["Industrial and OT security","industrial control systems security","Valuable for power and infrastructure engineers."]] },
+  energy:{ label:"Power and energy systems", skills:[["Grid modernization","power systems grid modernization","Technical PDH for power engineers."],["Renewable integration","renewable energy integration","A growing specialty."]] }
+};
+const PROV = [
+  { key:"pmi", name:"PMI", color:"#1F5C4A", url:() => "https://www.pmi.org/learning/training-development", note:"Education PDUs when taken from PMI or an Authorized Training Partner" },
+  { key:"li", name:"LinkedIn Learning", color:"#0A66C2", url:qy => "https://www.linkedin.com/learning/search?keywords=" + encodeURIComponent(qy), note:"Check each course page for PDU or CEU eligibility" },
+  { key:"co", name:"Coursera", color:"#3443C4", url:qy => "https://www.coursera.org/search?query=" + encodeURIComponent(qy), note:"Some programs carry academic credit recommendations" }
+];
+function renderCareer(){
+  $("#goals").innerHTML = Object.entries(GOALS).map(([k, g]) => `<button type="button" data-goal="${k}" aria-pressed="${L.goals.includes(k)}">${esc(g.label)}</button>`).join("");
+  const recs = verifiedRecords(), cards = [];
+  L.licenses.forEach(lic => { licenseProgress(lic, recs).filter(i => i.gap).slice(0, 3).forEach(i => {
+    const pm = /PDU|Ways|Power|Business/.test(i.label), qy = i.key === "pduWW" ? "agile project management" : i.key === "pduPS" ? "leadership communication" : i.key === "pduBA" ? "business strategy" : /Ethics/.test(i.label) ? "engineering ethics" : pm ? "project management" : "professional engineering";
+    cards.push({ title:`Close your ${i.label} gap`, why:`${lic.name}: ${n(i.gap)} ${i.label} still needed before ${fmt(lic.cycleEnd)}.`, q:qy, pmi:pm, urgent:true }); }); });
+  L.goals.forEach(k => GOALS[k].skills.forEach(([t, qy, why]) => cards.push({ title:t, why, q:qy, pmi:!!GOALS[k].pmi, goal:GOALS[k].label })));
+  const seen = {}; const list = cards.filter(c => seen[c.title] ? false : (seen[c.title] = 1)).slice(0, 8);
+  $("#recs").innerHTML = list.length ? list.map(c => `<div class="rec"><div class="row" style="justify-content:space-between"><strong>${esc(c.title)}</strong>${c.urgent ? '<span class="pill info">License gap</span>' : `<span class="hint">${esc(c.goal)}</span>`}</div><span class="why">${esc(c.why)}</span>
+      <div class="providers">${PROV.filter(p => p.key !== "pmi" || c.pmi).map(p => `<a class="prov" href="${esc(p.url(c.q))}" target="_blank" rel="noopener noreferrer" title="${esc(p.note)}"><i style="background:${p.color}"></i>${esc(p.name)}</a>`).join("")}</div></div>`).join("")
+      + `<p class="hint" style="margin:0">Links open each provider's catalog. ${esc(PROV[0].note)}; on LinkedIn Learning and Coursera, check each course page for PDU or CEU eligibility. Finished a course? Add it under Add and claim so Attest can verify it.</p>`
+    : `<div class="empty">Pick a goal above to see recommended learning.</div>`;
+  let key = null; try { key = localStorage.getItem("attest.apiKey"); } catch {}
+  $("#coachOff").hidden = !!key; $("#coachOn").hidden = !key;
+}
+$("#goals").addEventListener("click", e => { const b = e.target.closest("[data-goal]"); if (!b) return; const k = b.dataset.goal;
+  L.goals = L.goals.includes(k) ? L.goals.filter(x => x !== k) : [...L.goals, k]; save(); renderCareer(); });
+$("#keyForm").addEventListener("submit", e => { e.preventDefault(); const k = $("#keyIn").value.trim(); if (!k) return; try { localStorage.setItem("attest.apiKey", k); } catch {} renderCareer(); toast("Key saved in this browser"); });
+const chatLog = [];
+function renderChat(){ $("#chat").innerHTML = chatLog.length ? chatLog.map(m => `<div class="msg ${m.role === "user" ? "user" : "coach"}">${esc(m.text || "Thinking…")}</div>`).join("") : `<div class="msg coach">Hi ${esc(L.profile.name.split(" ")[0] || "")}. Tell me where you want your career to go and I'll suggest the next credentials and courses.</div>`; $("#chat").scrollTop = 1e6; $("#coachSuggest").hidden = chatLog.length > 0; }
+function coachContext(){
+  const recs = verifiedRecords(), s = E.stats(recs);
+  return JSON.stringify({ today, learner:L.profile.name, goals:L.goals.map(k => GOALS[k].label), verified_points:s.points,
+    verified_records:recs.map(r => `${r.date} ${r.title} (${r.issuer}): ${E.creditLine(r.credits)}`),
+    licenses:L.licenses.map(l => ({ name:l.name, cycle_end:l.cycleEnd, open_gaps:licenseProgress(l, recs).filter(i => i.gap).map(i => `${n(i.gap)} ${i.label}`) })),
+    micro_credentials:microState().map(m => `${m.name}: ${m.earned ? "earned" : `${n(m.v)}/${m.need}`}`) });
+}
+$("#coachForm").addEventListener("submit", async e => {
+  e.preventDefault(); const text = $("#coachIn").value.trim(); let key = null; try { key = localStorage.getItem("attest.apiKey"); } catch {} if (!text || !key) return;
+  const history = chatLog.filter(m => m.text).slice(-6).map(m => ({ role:m.role === "user" ? "user" : "assistant", content:m.text }));
+  chatLog.push({ role:"user", text }); const reply = { role:"coach", text:"" }; chatLog.push(reply); renderChat(); $("#coachIn").value = ""; $("#coachSend").disabled = true;
+  const prompt = `You are the Attest career coach for a working professional. Give practical, specific advice in 4-8 short plain-text lines (no markdown headings or tables). Recommend learning by provider (PMI, LinkedIn Learning, Coursera) and topic, and explain how it closes their license gaps or goals. Do not invent specific course titles, prices or accreditation claims; describe what to look for and tell them to check PDU or CEU eligibility on the course page. Only verified items count on Attest.\n\nLearner data (JSON):\n${coachContext()}\n\nQuestion: ${text}`;
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", { method:"POST", headers:{ "content-type":"application/json", "x-api-key":key, "anthropic-version":"2023-06-01", "anthropic-dangerous-direct-browser-access":"true" },
+      body: JSON.stringify({ model:"claude-sonnet-5-5", max_tokens:900, messages:[...history, { role:"user", content:prompt }] }) });
+    if (!res.ok) throw new Error(res.status === 401 ? "Your Claude API key was rejected." : res.status === 429 ? "Too many requests. Wait a moment and try again." : "The coach couldn't answer. Try again.");
+    const j = await res.json(); reply.text = (j.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim() || "No answer came back. Try rephrasing.";
+  } catch(err){ reply.text = err.message || "The coach couldn't answer. Check your connection."; }
+  $("#coachSend").disabled = false; renderChat();
+});
+document.addEventListener("click", e => { const b = e.target.closest("[data-coach]"); if (b){ $("#coachIn").value = b.dataset.coach; $("#coachForm").requestSubmit(); } });
+
+/* ---------- profile ---------- */
+function renderMe(){
+  const nm = L.profile.name || "Learner"; $("#meName").textContent = nm; $("#meInitials").textContent = nm.split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
+  $("#meLinks").innerHTML = L.profile.demo ? `Demo record · <a href="../signup.html?role=learner">Start mine</a>` : `${esc(L.profile.email)} · <a href="../signup.html#login">Switch</a>`;
+  const b = $("#banner");
+  b.innerHTML = L.profile.demo ? `<span>You're exploring a demo learner record (Amina Diallo).</span><a href="../signup.html?role=learner">Create your own free record</a><button class="btn ghost" id="resetDemo" style="min-height:30px;padding:0 10px">Reset demo</button>`
+    : `<span>Preview: your record is saved in this browser until Attest's servers launch.</span>`;
+  b.hidden = false; const r = $("#resetDemo"); if (r) r.onclick = () => { L = E.demo(); save(); renderAll(); toast("Demo reset"); };
+}
+function renderAll(){ renderMe(); renderHome(); renderClaims(); renderMicro(); renderCareer();
+  const ready = microState().filter(m => m.ready).length; $("#microCount").hidden = !ready; $("#microCount").textContent = ready || ""; }
+renderAll(); renderChat();
+try { const t = localStorage.getItem("attest.learner.tab"); if (t && TITLES[t]) go(t); } catch {}
+const h = (location.hash || "").slice(1); if (/^[A-Z]{2,5}-/.test(h)){ go("verify"); $("#vId").value = h; verifyId(h); }
+})();
+</script>
+</body>
+</html>
