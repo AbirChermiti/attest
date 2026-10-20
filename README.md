@@ -21,6 +21,7 @@ This is a front-end preview; the backend in the technical design is not built ye
 - **Accounts and data live in the visitor's browser** (localStorage). Nothing is shared between devices, and clearing site data removes it.
 - **Verification** finds the example credentials and anything issued from the same browser. Public cross-device verification needs the backend.
 - **Learner verification** runs Attest's automatic checks in the browser (issuer, link on the issuer's own site, dates, credit, duplicates). With the backend, links are fetched and confirmed with the issuer.
+- **Email delivery** sends through EmailJS from the browser once it's connected in the issuer app's Settings (setup: [`emails/README.md`](emails/README.md)). Without it, each credential offers a pre-filled draft in your own mail app.
 - **The agent** and the **career coach** work only after you paste your own Claude API key in **Settings**. The key stays in your browser and requests go directly to Anthropic, billed to that key. Don't use a shared or production key on a public computer.
 - Credit rules follow the common NCEES-style PDH model and PMI's CCR categories. Boards differ; confirm before advertising credits.
 
